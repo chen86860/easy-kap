@@ -57,7 +57,9 @@ jobs:
           security import "$RUNNER_TEMP/developer-id.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
           rm -f "$RUNNER_TEMP/developer-id.p12"
           security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain" >/dev/null
-          mapfile -t existing < <(security list-keychains -d user | sed 's/[ "]//g')
+          # The runner's /bin/bash is 3.2, which has no mapfile.
+          existing=()
+          while IFS= read -r line; do existing+=("$(printf '%s' "$line" | sed 's/[ "]//g')"); done < <(security list-keychains -d user)
           security list-keychains -d user -s "$keychain" "${existing[@]}"
           security find-identity -v -p codesigning "$keychain"
 
