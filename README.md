@@ -25,7 +25,7 @@ Requires macOS 15+.
 ## Develop
 
 ```sh
-brew install xcodegen   # the .xcodeproj is generated from project.yml
+brew install xcodegen create-dmg   # the .xcodeproj is generated from project.yml; create-dmg packs the DMG
 make build              # Debug build
 make run                # build and launch
 make test               # Swift Testing suite
@@ -39,6 +39,8 @@ make uninstall          # remove the installed app
 `Tools/install.sh` also takes `--reset-permissions` (forget the Screen Recording and Microphone grants after installing) and `uninstall --purge` (also remove settings and cached recordings). It only touches Easy Kap, moves removed apps to the Trash, and never deletes exported recordings.
 
 Builds are ad-hoc signed. macOS ties the Screen Recording permission to the signature, so you may need to allow the app again after rebuilding.
+
+The disk image window background is drawn by `Tools/make-dmg-background.swift` into `Tools/dmg/`; rerun it after changing the layout in `Tools/make-dmg.sh`.
 
 The app icon is drawn by `Tools/render-icon.swift` (`swift Tools/render-icon.swift icon.png`); build the iconset from that PNG with `sips` and `iconutil`.
 
