@@ -10,18 +10,25 @@ settings:
     SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
     SWIFT_APPROACHABLE_CONCURRENCY: YES
     SWIFT_STRICT_CONCURRENCY: complete
-    MARKETING_VERSION: 0.1.0
-    CURRENT_PROJECT_VERSION: 1
+    # Sparkle compares CFBundleVersion, so it follows the marketing version. Releases stamp both from the tag.
+    MARKETING_VERSION: 0.1.1
+    CURRENT_PROJECT_VERSION: 0.1.1
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
     ENABLE_USER_SCRIPT_SANDBOXING: YES
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
 targets:
   Kap:
     type: application
     platform: macOS
     sources: [Kap]
+    dependencies:
+      - package: Sparkle
     info:
       path: Kap/Info.plist
       properties:
@@ -34,6 +41,10 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         NSMicrophoneUsageDescription: Easy Kap records your microphone when audio recording is enabled.
         NSHumanReadableCopyright: MIT License
+        # Each release uploads appcast.xml next to EasyKap.dmg; see Tools/make-appcast.sh.
+        SUFeedURL: https://github.com/chen86860/easy-kap/releases/latest/download/appcast.xml
+        SUPublicEDKey: JfuTesPJdPI3TDwiPV0WV3YMSrNeWbXTC3j0biW2yzY=
+        SUEnableAutomaticChecks: true
     entitlements:
       path: Kap/Kap.entitlements
       properties:

@@ -63,7 +63,7 @@ The app icon is drawn by `Tools/render-icon.swift` (`swift Tools/render-icon.swi
 
 ## Releases
 
-Pushing a tag such as `v0.1.1` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions: it stamps the version into the app, builds `EasyKap.dmg` with `Tools/make-dmg.sh`, and publishes it as a release. The asset name stays `EasyKap.dmg`, so `releases/latest/download/EasyKap.dmg` always points at the newest build.
+Add the version's notes to [CHANGELOG.md](CHANGELOG.md) first. Pushing a tag such as `v0.1.2` then runs [the release workflow](.github/workflows/release.yml) on GitHub Actions: it stamps the version into the app, builds `EasyKap.dmg` with `Tools/make-dmg.sh`, signs it for [Sparkle](https://sparkle-project.org), and publishes it with an `appcast.xml` as a release. Installed copies find the update through that appcast. The asset names stay fixed, so `releases/latest/download/EasyKap.dmg` always points at the newest build.
 
 ## Website
 

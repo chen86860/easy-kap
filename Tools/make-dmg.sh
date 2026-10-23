@@ -21,7 +21,8 @@ if ! command -v create-dmg >/dev/null; then
 fi
 
 settings=(ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO)
-if [[ -n "$version" ]]; then settings+=(MARKETING_VERSION="$version"); fi
+# Sparkle orders updates by CFBundleVersion, so both versions take the release's number.
+if [[ -n "$version" ]]; then settings+=(MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$version"); fi
 
 echo "→ Building universal Release${version:+ $version}"
 xcodegen generate --quiet

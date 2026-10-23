@@ -1,5 +1,6 @@
 import AppKit
 import OSLog
+import Sparkle
 import SwiftUI
 
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "EasyKap", category: "app")
@@ -13,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: StatusItemController?
   private var editors: [EditorWindowController] = []
   private var preferencesWindow: NSWindow?
+  /// Checks the release appcast for updates; created at launch, but not when the app hosts unit tests.
+  private var updaterController: SPUStandardUpdaterController?
   private var isStartingRecording = false
 
   static func main() {
@@ -24,6 +27,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+
+    updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
     NSApp.mainMenu = makeMainMenu()
     statusItem = StatusItemController(
@@ -137,9 +142,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.urls.forEach(openEditor)
   }
 
+  @objc private func checkForUpdates() {
+    NSApp.activate()
+    updaterController?.checkForUpdates(nil)
+  }
+
   @objc private func showPreferences() {
     if preferencesWindow == nil {
-      let window = NSWindow(contentViewController: NSHostingController(rootView: PreferencesView(preferences: preferences)))
+      let view = PreferencesView(preferences: preferences, updater: updaterController?.updater)
+      let window = NSWindow(contentViewController: NSHostingController(rootView: view))
       window.title = "Easy Kap Settings"
       window.styleMask = [.titled, .closable]
       window.isReleasedWhenClosed = false
@@ -183,6 +194,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       menu.addItem(withTitle: "Open Video…", action: #selector(openVideo), keyEquivalent: "").target = self
     }
     menu.addItem(.separator())
+    menu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
     menu.addItem(withTitle: "Settings…", action: #selector(showPreferences), keyEquivalent: ",").target = self
     menu.addItem(.separator())
     menu.addItem(withTitle: "Quit Easy Kap", action: #selector(NSApplication.terminate), keyEquivalent: "q")
@@ -194,6 +206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let main = NSMenu()
 
     let appMenu = NSMenu()
+    appMenu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
     appMenu.addItem(withTitle: "Settings…", action: #selector(showPreferences), keyEquivalent: ",").target = self
     appMenu.addItem(withTitle: "Quit Easy Kap", action: #selector(NSApplication.terminate), keyEquivalent: "q")
     main.addItem(withTitle: "Easy Kap", action: nil, keyEquivalent: "").submenu = appMenu

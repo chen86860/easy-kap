@@ -1,9 +1,13 @@
 import AVFoundation
+import Sparkle
 import SwiftUI
 
 struct PreferencesView: View {
   @Bindable var preferences: Preferences
+  /// `nil` in previews and tests, where no updater runs.
+  let updater: SPUUpdater?
   @State private var microphones: [AVCaptureDevice] = []
+  @State private var checksForUpdates = false
 
   var body: some View {
     Form {
@@ -39,6 +43,16 @@ struct PreferencesView: View {
         }
       }
 
+      if let updater {
+        Section("Updates") {
+          Toggle("Check for updates automatically", isOn: $checksForUpdates)
+            .onChange(of: checksForUpdates) { updater.automaticallyChecksForUpdates = checksForUpdates }
+          LabeledContent("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")") {
+            Button("Check Now") { updater.checkForUpdates() }
+          }
+        }
+      }
+
       Section("Export") {
         Toggle("Loop GIF and APNG exports", isOn: $preferences.loopExports)
       }
@@ -46,7 +60,10 @@ struct PreferencesView: View {
     .formStyle(.grouped)
     .frame(width: 480)
     .fixedSize(horizontal: false, vertical: true)
-    .task { microphones = Microphones.all }
+    .task {
+      microphones = Microphones.all
+      checksForUpdates = updater?.automaticallyChecksForUpdates ?? false
+    }
   }
 
   private func chooseDirectory() {

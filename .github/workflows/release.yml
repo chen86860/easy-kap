@@ -1,6 +1,7 @@
 name: Release
 
-# Pushing a tag such as v0.1.1 builds the disk image and publishes it as a GitHub release.
+# Pushing a tag such as v0.1.2 builds the disk image, signs it for Sparkle, and publishes a GitHub release with
+# EasyKap.dmg and appcast.xml. The release notes come from that version's section in CHANGELOG.md, which must exist.
 # Running the workflow by hand only builds the disk image and attaches it to the run.
 on:
   push:
@@ -25,6 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check the changelog entry
+        if: github.ref_type == 'tag'
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          grep -q "^## \[$version\]" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## [$version]' section"; exit 1; }
+
       - name: Show Xcode version
         run: xcodebuild -version
 
@@ -43,9 +50,18 @@ jobs:
           path: build/EasyKap.dmg
           if-no-files-found: error
 
-      # The website links to releases/latest/download/EasyKap.dmg, so the asset name must stay fixed.
+      - name: Sign for Sparkle and write the appcast
+        if: github.ref_type == 'tag'
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: Tools/make-appcast.sh "${GITHUB_REF_NAME#v}"
+
+      # The website links to releases/latest/download/EasyKap.dmg and the app reads
+      # releases/latest/download/appcast.xml, so both asset names must stay fixed.
       - name: Publish release
         if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" build/EasyKap.dmg --title "Easy Kap ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag
+        run: >-
+          gh release create "$GITHUB_REF_NAME" build/EasyKap.dmg build/appcast.xml
+          --title "Easy Kap ${GITHUB_REF_NAME#v}" --notes-file build/release-notes.md --verify-tag
