@@ -1,10 +1,25 @@
+<p align="center">
+  <img src=".github/media/banner.png" alt="Easy Kap: a native macOS screen recorder, inspired by Kap and rebuilt for Apple Silicon" width="100%">
+</p>
+
+<p align="center">
+  <a href="https://github.com/chen86860/easy-kap/releases/latest"><img src="https://img.shields.io/github/v/release/chen86860/easy-kap?label=release&color=6458f5" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-15%2B-141829" alt="macOS 15 or later">
+  <img src="https://img.shields.io/badge/Apple%20Silicon%20%2B%20Intel-universal-12d6be" alt="Universal binary">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-5a6377" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/chen86860/easy-kap/releases/latest/download/EasyKap.dmg"><b>Download EasyKap.dmg</b></a>
+</p>
+
 # Easy Kap
 
-A native macOS screen recorder in Swift, inspired by [Kap](https://github.com/wulkano/Kap). Built for Apple Silicon, with no Electron and no bundled ffmpeg.
+A native macOS screen recorder in Swift, inspired by [Kap](https://github.com/wulkano/Kap). Built for Apple Silicon and Intel, with no Electron and no bundled ffmpeg.
 
 ## Inspired by Kap
 
-Easy Kap started from a love of [Kap](https://getkap.co) by [Wulkano](https://wulkano.com), which has not been updated for Apple Silicon. It keeps Kap's workflow and look — the menu bar recorder, the area picker, the hover-to-trim editor, the gradient ring — and rebuilds them on current system frameworks. It is an independent project, not affiliated with or endorsed by Wulkano. Kap's menu bar icon is reused under its MIT license; see [LICENSE](LICENSE).
+Easy Kap started from a love of [Kap](https://getkap.co) by [Wulkano](https://wulkano.com), which hasn't had a release since 2022. It keeps Kap's workflow and look — the menu bar recorder, the area picker, the hover-to-trim editor, the gradient ring — and rebuilds them on current system frameworks. It is an independent project, not affiliated with or endorsed by Wulkano. Kap's menu bar icon is reused under its MIT license; see [LICENSE](LICENSE).
 
 ## Features
 
