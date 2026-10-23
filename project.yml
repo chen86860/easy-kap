@@ -15,7 +15,10 @@ settings:
     CURRENT_PROJECT_VERSION: 0.1.2
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
-    ENABLE_HARDENED_RUNTIME: YES
+    # Off while builds are ad-hoc signed: hardened runtime enforces library validation, and an ad-hoc app has no
+    # team to share with Sparkle.framework, so dyld refuses to load it and the app quits at launch. Turn it back on
+    # together with Developer ID signing and notarization.
+    ENABLE_HARDENED_RUNTIME: NO
     DEAD_CODE_STRIPPING: YES
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 packages:

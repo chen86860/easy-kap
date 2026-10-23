@@ -3,13 +3,13 @@
 // Tools/make-dmg.sh combines them into one multi-resolution TIFF for create-dmg.
 // Run: swift Tools/make-dmg-background.swift
 //
-// The layout matches the create-dmg options in Tools/make-dmg.sh: a 640 × 400 pt window with the app icon
-// centered at (160, 200) and the Applications shortcut at (480, 200), measured from the top left.
+// The layout matches the create-dmg options in Tools/make-dmg.sh: a 640 × 460 pt window with the app icon
+// centered at (160, 215) and the Applications shortcut at (480, 215), measured from the top left.
 import AppKit
 
 let width: CGFloat = 640
-let height: CGFloat = 400
-let iconCenterY: CGFloat = 200 // from the top, as create-dmg measures
+let height: CGFloat = 460
+let iconCenterY: CGFloat = 215 // from the top, as create-dmg measures
 let violet = NSColor(srgbRed: 0.392, green: 0.345, blue: 0.961, alpha: 1)
 let teal = NSColor(srgbRed: 0.071, green: 0.839, blue: 0.745, alpha: 1)
 let ink = NSColor(srgbRed: 0.078, green: 0.094, blue: 0.161, alpha: 1)
@@ -52,8 +52,9 @@ func render(scale: CGFloat) -> Data {
     attributed.draw(in: NSRect(x: 0, y: height - centerY - lineHeight / 2, width: width, height: lineHeight + 2))
   }
 
-  text("Easy Kap", size: 30, weight: .bold, color: ink, fromTop: 64, kern: -0.4)
-  text("Drag Easy Kap onto Applications to install", size: 13, weight: .regular, color: muted, fromTop: 330)
+  text("Easy Kap", size: 30, weight: .bold, color: ink, fromTop: 70, kern: -0.4)
+  // Kept well clear of the bottom, where Finder may draw its path and status bars.
+  text("Drag Easy Kap onto Applications to install", size: 13, weight: .regular, color: muted, fromTop: 352)
 
   // The arrow between the icons, in Kap's ring gradient.
   let arrowY = height - iconCenterY
@@ -79,4 +80,4 @@ let directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appe
 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 try render(scale: 1).write(to: directory.appendingPathComponent("background.png"))
 try render(scale: 2).write(to: directory.appendingPathComponent("background@2x.png"))
-print("✓ Tools/dmg/background.png (640×400) and background@2x.png (1280×800)")
+print("✓ Tools/dmg/background.png (640×460) and background@2x.png (1280×920)")

@@ -4,6 +4,9 @@
 # Used by the release workflow and for local testing. Needs `brew install xcodegen create-dmg`.
 # The window background comes from Tools/dmg/, drawn by Tools/make-dmg-background.swift.
 #
+# With APPLE_SIGNING_IDENTITY set, the app and the disk image are signed with that Developer ID certificate
+# (Tools/sign-app.sh); notarize afterwards with Tools/notarize-dmg.sh. Without it, the build stays ad-hoc signed.
+#
 #   Tools/make-dmg.sh           Use the version in project.yml
 #   Tools/make-dmg.sh 0.2.0     Stamp that version into the app
 set -euo pipefail
@@ -34,6 +37,11 @@ staging="$(mktemp -d)"
 work="$(mktemp -d)"
 trap 'rm -rf "$staging" "$work"' EXIT
 ditto "$built_app" "$staging/Easy Kap.app"
+if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
+  Tools/sign-app.sh "$staging/Easy Kap.app"
+else
+  echo "→ APPLE_SIGNING_IDENTITY is not set; keeping the ad-hoc signature"
+fi
 
 # A two-resolution TIFF keeps the background sharp on Retina displays.
 tiffutil -cathidpicheck Tools/dmg/background.png Tools/dmg/background@2x.png -out "$work/background.tiff" 2>/dev/null
@@ -45,13 +53,16 @@ create-dmg \
   --volicon "Kap/Resources/AppIcon.icns" \
   --background "$work/background.tiff" \
   --window-pos 200 120 \
-  --window-size 640 400 \
+  --window-size 640 460 \
   --icon-size 112 \
   --text-size 13 \
-  --icon "Easy Kap.app" 160 200 \
+  --icon "Easy Kap.app" 160 215 \
   --hide-extension "Easy Kap.app" \
-  --app-drop-link 480 200 \
+  --app-drop-link 480 215 \
   --hdiutil-quiet \
   --hdiutil-retries 10 \
   "$dmg" "$staging" >/dev/null
+if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
+  codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
+fi
 echo "→ $(du -h "$dmg" | cut -f1) $dmg ($(lipo -archs "$staging/Easy Kap.app/Contents/MacOS/EasyKap"))"

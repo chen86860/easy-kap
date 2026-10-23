@@ -6,6 +6,14 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+### Fixed
+
+- Easy Kap 0.1.2 quit as soon as it opened. macOS refused to load the update framework into an ad-hoc signed app running with the hardened runtime.
+
+### Changed
+
+- The disk image window is taller, so the install instructions sit clear of the window's bottom edge.
+
 ## [0.1.2] - 2026-10-23
 
 ### Added

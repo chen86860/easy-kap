@@ -63,7 +63,7 @@ The app icon is drawn by `Tools/render-icon.swift` (`swift Tools/render-icon.swi
 
 ## Releases
 
-Add the version's notes to [CHANGELOG.md](CHANGELOG.md) first. Pushing a tag such as `v0.1.2` then runs [the release workflow](.github/workflows/release.yml) on GitHub Actions: it stamps the version into the app, builds `EasyKap.dmg` with `Tools/make-dmg.sh`, signs it for [Sparkle](https://sparkle-project.org), and publishes it with an `appcast.xml` as a release. Installed copies find the update through that appcast. The asset names stay fixed, so `releases/latest/download/EasyKap.dmg` always points at the newest build.
+Add the version's notes to [CHANGELOG.md](CHANGELOG.md) first. Pushing a tag such as `v0.1.2` then runs [the release workflow](.github/workflows/release.yml) on GitHub Actions: it stamps the version into the app, builds `EasyKap.dmg` with `Tools/make-dmg.sh`, signs it for [Sparkle](https://sparkle-project.org), and publishes it with an `appcast.xml` as a release. Installed copies find the update through that appcast. With the `APPLE_CERTIFICATE_P12_BASE64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` and `APPLE_TEAM_ID` secrets set, the workflow also signs the app with Developer ID and notarizes the disk image (`Tools/sign-app.sh`, `Tools/notarize-dmg.sh`). The asset names stay fixed, so `releases/latest/download/EasyKap.dmg` always points at the newest build.
 
 ## Website
 

@@ -23,6 +23,10 @@ jobs:
   dmg:
     name: Build EasyKap.dmg
     runs-on: macos-26
+    env:
+      # Developer ID signing and notarization run only when the certificate secret exists; otherwise the build
+      # stays ad-hoc signed. Secrets can't appear in `if:` conditions, so this flag carries the check.
+      SIGNING_ENABLED: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -38,10 +42,38 @@ jobs:
       - name: Install XcodeGen and create-dmg
         run: brew install xcodegen create-dmg
 
+      - name: Import the Developer ID certificate
+        if: env.SIGNING_ENABLED == 'true'
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/developer-id.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/developer-id.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          rm -f "$RUNNER_TEMP/developer-id.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain" >/dev/null
+          mapfile -t existing < <(security list-keychains -d user | sed 's/[ "]//g')
+          security list-keychains -d user -s "$keychain" "${existing[@]}"
+          security find-identity -v -p codesigning "$keychain"
+
       - name: Build disk image
         env:
           VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: Tools/make-dmg.sh "${VERSION#v}"
+
+      - name: Notarize disk image
+        if: env.SIGNING_ENABLED == 'true'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: Tools/notarize-dmg.sh build/EasyKap.dmg
 
       - name: Attach disk image to the run
         uses: actions/upload-artifact@v4
@@ -50,6 +82,7 @@ jobs:
           path: build/EasyKap.dmg
           if-no-files-found: error
 
+      # After notarization: stapling rewrites the DMG, so Sparkle's signature must cover the final file.
       - name: Sign for Sparkle and write the appcast
         if: github.ref_type == 'tag'
         env:
