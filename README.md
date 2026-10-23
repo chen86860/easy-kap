@@ -11,6 +11,8 @@
 
 <p align="center">
   <a href="https://github.com/chen86860/easy-kap/releases/latest/download/EasyKap.dmg"><b>Download EasyKap.dmg</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://easy-kap.emmmm.dev"><b>easy-kap.emmmm.dev</b></a>
 </p>
 
 # Easy Kap
@@ -65,7 +67,7 @@ Pushing a tag such as `v0.1.1` runs [the release workflow](.github/workflows/rel
 
 ## Website
 
-The product site lives in [`website/`](website): React, Vite, TanStack Router, Tailwind CSS and shadcn/ui, served by Cloudflare Workers.
+The product site, [easy-kap.emmmm.dev](https://easy-kap.emmmm.dev), lives in [`website/`](website): React, Vite, TanStack Router, Tailwind CSS and shadcn/ui, served by Cloudflare Workers.
 
 ```sh
 cd website

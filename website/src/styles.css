@@ -78,10 +78,55 @@
   background-image: linear-gradient(135deg, var(--violet), var(--teal));
 }
 
+/* The ring gradient flows slowly through the text, out and back. */
 @utility text-kap-ring {
-  background-image: linear-gradient(135deg, var(--violet), var(--teal));
+  background-image: linear-gradient(110deg, var(--violet), var(--teal), var(--violet));
+  background-size: 220% 100%;
   background-clip: text;
   color: transparent;
+  animation: ring-flow 7s ease-in-out infinite alternate;
+}
+@keyframes ring-flow {
+  to {
+    background-position: 100% 0;
+  }
+}
+
+/* The download button's glow turns around it. */
+@property --ring-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.cta-glow {
+  background: conic-gradient(from var(--ring-angle), var(--violet), var(--teal), #ff8a7a, var(--violet));
+  animation: ring-turn 5s linear infinite;
+}
+@keyframes ring-turn {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+.cta-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.28) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.group:hover .cta-sheen::after {
+  transform: translateX(120%);
+  transition: transform 0.9s ease;
+}
+
+/* Soft light drifting behind the hero. */
+@keyframes drift {
+  50% {
+    transform: translate3d(var(--drift-x, 40px), var(--drift-y, -30px), 0) scale(1.08);
+  }
+}
+.orb {
+  animation: drift 14s ease-in-out infinite;
 }
 
 @layer base {
@@ -90,6 +135,8 @@
   }
   html {
     scroll-behavior: smooth;
+    /* The hero's drifting light extends past the gutter; clip it without making the page scroll sideways. */
+    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;

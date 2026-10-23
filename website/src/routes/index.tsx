@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ArrowDown } from "lucide-react";
 import { motion } from "motion/react";
+import type { CSSProperties } from "react";
 
 import { AreaPickerDemo } from "@/components/area-picker-demo";
-import { DownloadButton } from "@/components/download-button";
+import { DownloadButton, SecondaryButton } from "@/components/download-button";
 import { KapRing } from "@/components/kap-ring";
 import { Frame, Points, Section } from "@/components/section";
 import { TrimDemo } from "@/components/trim-demo";
@@ -10,6 +12,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { kapURL, releasesURL, repositoryURL } from "@/lib/site";
 
 export const Route = createFileRoute("/")({ component: Home });
+
+const headline: { word: string; ring?: boolean }[] = [
+  { word: "The" },
+  { word: "Kap", ring: true },
+  ...["you", "loved,", "rebuilt", "native", "for", "Apple", "Silicon."].map((word) => ({ word })),
+];
 
 const formats = [
   { name: "GIF", engine: "ImageIO · up to 50 fps", summary: "For READMEs and chats. Loops forever by default." },
@@ -56,27 +64,57 @@ function Home() {
       </header>
 
       <main id="top">
-        <section aria-labelledby="hero-title" className="grid gap-10 pt-9 pb-18">
-          <motion.div
-            className="grid max-w-205 gap-5.5"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <span className="text-muted-foreground font-mono text-xs tracking-[0.08em] uppercase">Screen recorder for macOS · inspired by Kap</span>
-            <h1 id="hero-title" className="text-[clamp(2.4rem,1.3rem+4.4vw,4.6rem)] leading-[1.06]">
-              The <span className="text-kap-ring">Kap</span> you loved, rebuilt native for Apple Silicon.
+        <section aria-labelledby="hero-title" className="relative isolate grid gap-12 pt-9 pb-18">
+          {/* Drifting light in the ring's two colors. */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[620px]">
+            <span className="orb bg-violet/25 absolute top-0 -left-24 size-[420px] rounded-full blur-[90px]" />
+            <span
+              className="orb bg-teal/25 absolute top-24 right-[-8%] size-[380px] rounded-full blur-[90px]"
+              style={{ "--drift-x": "-50px", "--drift-y": "40px", animationDelay: "-6s" } as CSSProperties}
+            />
+          </div>
+
+          <div className="grid max-w-215 gap-6">
+            <motion.span
+              className="text-muted-foreground font-mono text-xs tracking-[0.08em] uppercase"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              Screen recorder for macOS · inspired by Kap
+            </motion.span>
+            <h1 id="hero-title" aria-label="The Kap you loved, rebuilt native for Apple Silicon." className="text-[clamp(2.4rem,1.3rem+4.4vw,4.6rem)] leading-[1.06]">
+              {headline.map(({ word, ring }, index) => (
+                <motion.span
+                  key={word}
+                  aria-hidden="true"
+                  className={ring ? "text-kap-ring inline-block" : "inline-block"}
+                  initial={{ opacity: 0, y: "0.4em", filter: "blur(10px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.6, delay: 0.08 + index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {word}
+                  {index < headline.length - 1 && "\u00a0"}
+                </motion.span>
+              ))}
             </h1>
-            <p className="text-muted-foreground max-w-[60ch] text-xl">
-              Draw a box around anything on your screen, press Return, and get a GIF, MP4, HEVC or APNG you can drop straight into a pull request,
-              a chat or a doc.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <DownloadButton />
-              <a href="#install" className={buttonVariants({ variant: "outline", size: "lg", className: "bg-panel border-line h-12 rounded-full px-5 text-base shadow-xs" })}>
-                How to install
-              </a>
-            </div>
+            <motion.div
+              className="grid gap-7"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+            >
+              <p className="text-muted-foreground max-w-[60ch] text-xl">
+                Draw a box around anything on your screen, press Return, and get a GIF, MP4, HEVC or APNG you can drop straight into a pull
+                request, a chat or a doc.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <DownloadButton />
+                <SecondaryButton href="#install">
+                  How to install
+                  <ArrowDown className="text-violet size-4.5 transition-transform duration-300 group-hover:translate-y-0.5" />
+                </SecondaryButton>
+              </div>
             <div className="text-muted-foreground flex flex-wrap gap-x-4.5 gap-y-2 text-sm">
               {["macOS 15 or later", "Apple Silicon and Intel", "Free and open source, MIT"].map((fact) => (
                 <span key={fact} className="inline-flex items-center gap-2">
@@ -85,8 +123,17 @@ function Home() {
                 </span>
               ))}
             </div>
+            </motion.div>
+          </div>
+          {/* The desk tips up into place, like a window opening. It stays fully visible throughout. */}
+          <motion.div
+            style={{ transformPerspective: 1400 }}
+            initial={{ rotateX: 16, y: 48, scale: 0.96 }}
+            animate={{ rotateX: 0, y: 0, scale: 1 }}
+            transition={{ duration: 1.1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AreaPickerDemo />
           </motion.div>
-          <AreaPickerDemo />
         </section>
 
         <Section
@@ -149,7 +196,10 @@ function Home() {
         >
           <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
             {formats.map((format) => (
-              <div key={format.name} className="bg-panel border-line grid content-start gap-2 rounded-[18px] border p-5.5">
+              <div
+                key={format.name}
+                className="bg-panel border-line hover:border-violet/40 grid content-start gap-2 rounded-[18px] border p-5.5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_40px_-24px_rgb(100_88_245/0.45)]"
+              >
                 <span className="text-violet font-mono text-xs">{format.engine}</span>
                 <b className="font-display text-2xl tracking-tight">{format.name}</b>
                 <p className="text-muted-foreground text-[0.95rem]">{format.summary}</p>
@@ -250,9 +300,7 @@ function Home() {
               </ol>
               <div className="flex flex-wrap gap-3 pt-2">
                 <DownloadButton />
-                <a href={releasesURL} className={buttonVariants({ variant: "outline", size: "lg", className: "bg-panel border-line h-12 rounded-full px-5 text-base shadow-xs" })}>
-                  All releases
-                </a>
+                <SecondaryButton href={releasesURL}>All releases</SecondaryButton>
               </div>
             </Frame>
             <div className="grid gap-5.5">
