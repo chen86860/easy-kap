@@ -157,7 +157,7 @@ struct EditorView: View {
         NumberField(value: model.height, onCommit: model.setHeight)
       }
       Menu("\(model.scalePercent)%") {
-        Picker("Scale", selection: Binding(get: { model.scalePercent }, set: model.setScale)) {
+        Picker("Scale", selection: Binding(get: { model.scalePercent }, set: { model.setScale($0) })) {
           ForEach(EditorModel.scalePresets, id: \.self) { percent in
             let size = model.scaledSize(percent)
             Text(verbatim: "\(size.width) x \(size.height) (\(percent == 100 ? "Original" : "\(percent)%"))").tag(percent)
