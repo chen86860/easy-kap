@@ -1,3 +1,5 @@
 allowBuilds:
   esbuild: true
   workerd: true
+  # Only prints a funding message after install; posthog-js pulls it in.
+  core-js: false
