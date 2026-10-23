@@ -1,0 +1,62 @@
+name: Kap
+options:
+  bundleIdPrefix: io.github.chen86860
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: 4.0.0
+    CURRENT_PROJECT_VERSION: 1
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: YES
+    DEAD_CODE_STRIPPING: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  Kap:
+    type: application
+    platform: macOS
+    sources: [Kap]
+    info:
+      path: Kap/Info.plist
+      properties:
+        CFBundleDisplayName: Easy Kap
+        CFBundleName: Easy Kap
+        CFBundleIconFile: AppIcon
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.productivity
+        NSMicrophoneUsageDescription: Easy Kap records your microphone when audio recording is enabled.
+        NSHumanReadableCopyright: MIT License
+    entitlements:
+      path: Kap/Kap.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.chen86860.EasyKap
+        PRODUCT_NAME: EasyKap
+        PRODUCT_MODULE_NAME: Kap
+  KapTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [KapTests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/EasyKap.app/Contents/MacOS/EasyKap
+        BUNDLE_LOADER: $(TEST_HOST)
+    dependencies:
+      - target: Kap
+schemes:
+  Kap:
+    build:
+      targets:
+        Kap: all
+        KapTests: [test]
+    test:
+      targets: [KapTests]

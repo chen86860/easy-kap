@@ -1,0 +1,16 @@
+included:
+  - Kap
+  - KapTests
+excluded:
+  - build
+line_length:
+  warning: 140
+  ignores_comments: true
+identifier_name:
+  excluded: [id, x, y, w, h, dx, dy]
+opt_in_rules:
+  - empty_count
+  - first_where
+  - modifier_order
+  - sorted_first_last
+  - toggle_bool

@@ -1,0 +1,4 @@
+build/
+Kap.xcodeproj/
+Kap/Info.plist
+Kap/Kap.entitlements
