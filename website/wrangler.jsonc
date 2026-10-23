@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "easy-kap",
+  "compatibility_date": "2026-10-01",
+  // A static site: Workers serves the built assets, and unknown paths fall back to the app's router.
+  "assets": { "not_found_handling": "single-page-application" }
+}

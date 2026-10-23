@@ -15,6 +15,13 @@ Easy Kap started from a love of [Kap](https://getkap.co) by [Wulkano](https://wu
 
 Requires macOS 15+.
 
+## Install
+
+1. Download **EasyKap.dmg** from the [latest release](https://github.com/chen86860/easy-kap/releases/latest).
+2. Open it and drag Easy Kap into Applications.
+3. Open Easy Kap. It isn't notarized by Apple yet, so macOS blocks the first launch: go to **System Settings → Privacy & Security** and click **Open Anyway**.
+4. Record once and allow Screen Recording when macOS asks, then reopen Easy Kap.
+
 ## Develop
 
 ```sh
@@ -24,6 +31,7 @@ make run                # build and launch
 make test               # Swift Testing suite
 make lint               # SwiftLint (version pinned in mise.toml)
 make release            # Universal Release build
+make dmg                # Universal Release build packaged as build/EasyKap.dmg
 make install            # build, replace /Applications/Easy Kap.app, and launch it
 make uninstall          # remove the installed app
 ```
@@ -33,6 +41,22 @@ make uninstall          # remove the installed app
 Builds are ad-hoc signed. macOS ties the Screen Recording permission to the signature, so you may need to allow the app again after rebuilding.
 
 The app icon is drawn by `Tools/render-icon.swift` (`swift Tools/render-icon.swift icon.png`); build the iconset from that PNG with `sips` and `iconutil`.
+
+## Releases
+
+Pushing a tag such as `v0.1.1` runs [the release workflow](.github/workflows/release.yml) on GitHub Actions: it stamps the version into the app, builds `EasyKap.dmg` with `Tools/make-dmg.sh`, and publishes it as a release. The asset name stays `EasyKap.dmg`, so `releases/latest/download/EasyKap.dmg` always points at the newest build.
+
+## Website
+
+The product site lives in [`website/`](website): React, Vite, TanStack Router, Tailwind CSS and shadcn/ui, served by Cloudflare Workers.
+
+```sh
+cd website
+pnpm install
+pnpm dev                # local server
+pnpm typecheck && pnpm lint && pnpm test && pnpm build
+pnpm run deploy         # build and deploy with Wrangler
+```
 
 ## License
 

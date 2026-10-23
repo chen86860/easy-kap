@@ -1,0 +1,51 @@
+name: Release
+
+# Pushing a tag such as v0.1.1 builds the disk image and publishes it as a GitHub release.
+# Running the workflow by hand only builds the disk image and attaches it to the run.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to stamp into the app, such as 0.1.1. Leave empty to keep the version in project.yml.
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dmg:
+    name: Build EasyKap.dmg
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Build disk image
+        env:
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+        run: Tools/make-dmg.sh "${VERSION#v}"
+
+      - name: Attach disk image to the run
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasyKap.dmg
+          path: build/EasyKap.dmg
+          if-no-files-found: error
+
+      # The website links to releases/latest/download/EasyKap.dmg, so the asset name must stay fixed.
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" build/EasyKap.dmg --title "Easy Kap ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag

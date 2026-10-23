@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Layout: the page is a desktop being recorded. The hero is a live area picker; each section below is a captured frame. */
+:root {
+  --paper: #f3f6f8; /* cool page ground, a touch of teal */
+  --panel: #ffffff;
+  --ink: #141829; /* indigo-black */
+  --muted-ink: #5a6377;
+  --line: #dbe2e9;
+  --violet: #6458f5; /* Kap ring, start */
+  --teal: #12d6be; /* Kap ring, end */
+  --rec: #ff453a;
+
+  /* shadcn tokens, mapped onto the palette above. The page is deliberately light only. */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #ffffff;
+  --secondary: var(--panel);
+  --secondary-foreground: var(--ink);
+  --muted: #e8edf2;
+  --muted-foreground: var(--muted-ink);
+  --accent: #eceafe;
+  --accent-foreground: var(--ink);
+  --destructive: var(--rec);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--violet);
+  --radius: 0.75rem;
+  color-scheme: light;
+}
+
+@theme inline {
+  --font-display: "Unbounded", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Figtree", "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-display);
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-paper: var(--paper);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-line: var(--line);
+  --color-violet: var(--violet);
+  --color-teal: var(--teal);
+  --color-rec: var(--rec);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@utility bg-kap-ring {
+  background-image: linear-gradient(135deg, var(--violet), var(--teal));
+}
+
+@utility text-kap-ring {
+  background-image: linear-gradient(135deg, var(--violet), var(--teal));
+  background-clip: text;
+  color: transparent;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/60;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    /* A faint pixel grid, as if the page itself were under the cropper. */
+    background-image: radial-gradient(circle at 1px 1px, rgb(20 24 41 / 0.07) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-bold tracking-tight text-balance;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2;
+  }
+}
+
+/* The wallpaper of the demo desktop. */
+.desk-wallpaper {
+  background:
+    radial-gradient(60% 70% at 15% 20%, #e3ddff 0%, transparent 60%),
+    radial-gradient(55% 60% at 90% 30%, #c9f6ee 0%, transparent 60%),
+    radial-gradient(70% 60% at 60% 100%, #fde3dc 0%, transparent 60%),
+    #eef2f6;
+}
+
+/* The recording outline marches, like a selection being captured. */
+@keyframes ants {
+  to {
+    outline-offset: 2px;
+  }
+}
+.marching {
+  animation: ants 0.6s linear infinite;
+}
+
+@keyframes grow {
+  to {
+    transform: scaleY(0.6);
+  }
+}
+.chart-bar {
+  animation: grow 3.2s ease-in-out infinite alternate;
+  transform-origin: bottom;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.ring-spin {
+  animation: spin-slow 9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
