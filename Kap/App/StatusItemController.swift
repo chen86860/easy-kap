@@ -85,7 +85,11 @@ final class StatusItemController: NSObject {
   @objc private func clicked(_ sender: NSStatusBarButton) {
     let event = NSApp.currentEvent
     if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
-      makeMenu().popUp(positioning: nil, at: CGPoint(x: 0, y: sender.bounds.height + 4), in: sender)
+      // Attaching the menu for one click lets macOS place it below the icon, fully on screen. Placing it by
+      // hand put its top above the screen edge, so it opened collapsed behind a scroll arrow.
+      item.menu = makeMenu()
+      sender.performClick(nil)
+      item.menu = nil
     } else {
       onPrimaryAction()
     }

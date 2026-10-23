@@ -267,7 +267,7 @@ function Home() {
           </div>
         </Section>
 
-        <Section id="install" eyebrow="Install" title="Download, drag, record" lede="Easy Kap ships as a disk image, built from the public source by GitHub Actions.">
+        <Section id="install" eyebrow="Install" title="Download, drag, record" lede="Easy Kap ships as a signed, notarized disk image, built from the public source by GitHub Actions.">
           <div className="grid items-start gap-5.5 md:grid-cols-2">
             <Frame title="Install from the disk image">
               <ol className="grid gap-3.5">
@@ -276,10 +276,7 @@ function Home() {
                     Download <b>EasyKap.dmg</b> from the latest release.
                   </>,
                   "Open it and drag Easy Kap into Applications.",
-                  <>
-                    Open Easy Kap. It isn't notarized by Apple yet, so macOS blocks the first launch. Go to{" "}
-                    <b>System Settings → Privacy &amp; Security</b> and click <b>Open Anyway</b>.
-                  </>,
+                  "Open Easy Kap. It's signed and notarized by Apple, so it opens like any other app.",
                   "Record once and allow Screen Recording when macOS asks, then reopen Easy Kap.",
                 ].map((step, index) => (
                   // Static copy: the order is the identity.

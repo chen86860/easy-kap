@@ -36,7 +36,7 @@ Requires macOS 15+.
 
 1. Download **EasyKap.dmg** from the [latest release](https://github.com/chen86860/easy-kap/releases/latest).
 2. Open it and drag Easy Kap into Applications.
-3. Open Easy Kap. It isn't notarized by Apple yet, so macOS blocks the first launch: go to **System Settings → Privacy & Security** and click **Open Anyway**.
+3. Open Easy Kap. It's signed with a Developer ID and notarized by Apple, so it opens like any other app.
 4. Record once and allow Screen Recording when macOS asks, then reopen Easy Kap.
 
 ## Develop

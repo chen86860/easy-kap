@@ -74,6 +74,8 @@ final class Recorder {
   private var streamDelegate: StreamDelegate?
   /// Set when the stream ended on its own, for example from the system's menu bar stop button.
   private var isStreamStopped = false
+  /// Set while `stop()` runs, so a second stop request, from either menu bar button, does nothing.
+  private(set) var isStopping = false
 
   /// Called when the system stops the capture, so the recording can be saved as if the user had stopped it.
   var onStoppedBySystem: (() -> Void)?
@@ -136,10 +138,13 @@ final class Recorder {
   }
 
   func stop() async throws -> URL {
-    guard let stream, let sessionDirectory else { throw RecorderError.notRecording }
+    guard let stream, let sessionDirectory, !isStopping else { throw RecorderError.notRecording }
+    isStopping = true
     defer { reset() }
     try await finishSegment()
-    if !isStreamStopped { try await stream.stopCapture() }
+    // The segment file is already finished, so a stream that the system stopped meanwhile changes nothing.
+    // stopCapture then fails with "invalid parameter", which isn't worth reporting.
+    if !isStreamStopped { try? await stream.stopCapture() }
 
     let destination = Self.recordingsDirectory.appending(path: FileNaming.defaultName(fileExtension: "mov"))
     try await SegmentMerger.merge(finishedSegments, into: destination)
@@ -174,10 +179,12 @@ final class Recorder {
   private func handleStreamStopped() {
     guard stream != nil, !isStreamStopped else { return }
     isStreamStopped = true
-    onStoppedBySystem?()
+    // Already stopping, from Easy Kap's own button: this is the end of that stop, not a new request.
+    if !isStopping { onStoppedBySystem?() }
   }
 
   private func reset() {
+    isStopping = false
     stream = nil
     streamDelegate = nil
     isStreamStopped = false

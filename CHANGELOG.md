@@ -6,6 +6,11 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+### Fixed
+
+- The menu bar icon's menu opens in full below the icon. It used to open collapsed and had to be scrolled.
+- Stopping a recording with both menu bar buttons, Easy Kap's and the system's, no longer shows "Failed due to an invalid parameter".
+
 ## [0.1.3] - 2026-10-23
 
 ### Added

@@ -17,6 +17,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// Checks the release appcast for updates; created at launch, but not when the app hosts unit tests.
   private var updaterController: SPUStandardUpdaterController?
   private var isStartingRecording = false
+  /// Set the moment a stop is requested, before the recorder's async stop begins, so a quick second click is ignored.
+  private var isStoppingRecording = false
 
   static func main() {
     let app = NSApplication.shared
@@ -93,7 +95,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func stopRecording() {
+    // Both menu bar buttons can stop a recording; only the first click counts.
+    guard !isStoppingRecording, !recorder.isStopping else { return }
+    isStoppingRecording = true
     Task {
+      defer { isStoppingRecording = false }
       cropper.close()
       statusItem?.setState(.idle)
       do {
