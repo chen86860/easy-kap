@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://easy-kap.emmmm.dev/sitemap.xml
