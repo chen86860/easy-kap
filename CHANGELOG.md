@@ -6,6 +6,12 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-23
+
+### Added
+
+- Easy Kap is signed with a Developer ID and notarized by Apple, so macOS opens it without asking you to allow it in System Settings.
+
 ### Fixed
 
 - Easy Kap 0.1.2 quit as soon as it opened. macOS refused to load the update framework into an ad-hoc signed app running with the hardened runtime.
@@ -39,7 +45,8 @@ The first public release of Easy Kap, a native rewrite of Kap.
 
 Tagged but never released: the build crashed the Swift 6.3 compiler in Xcode 26.6. Version 0.1.1 contains the fix.
 
-[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.3
 [0.1.2]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.2
 [0.1.1]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.1
 [0.1.0]: https://github.com/chen86860/easy-kap/tree/v0.1.0

@@ -11,8 +11,8 @@ settings:
     SWIFT_APPROACHABLE_CONCURRENCY: YES
     SWIFT_STRICT_CONCURRENCY: complete
     # Sparkle compares CFBundleVersion, so it follows the marketing version. Releases stamp both from the tag.
-    MARKETING_VERSION: 0.1.2
-    CURRENT_PROJECT_VERSION: 0.1.2
+    MARKETING_VERSION: 0.1.3
+    CURRENT_PROJECT_VERSION: 0.1.3
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
     # Off while builds are ad-hoc signed: hardened runtime enforces library validation, and an ad-hoc app has no
