@@ -24,7 +24,11 @@ make run                # build and launch
 make test               # Swift Testing suite
 make lint               # SwiftLint (version pinned in mise.toml)
 make release            # Universal Release build
+make install            # build, replace /Applications/Easy Kap.app, and launch it
+make uninstall          # remove the installed app
 ```
+
+`Tools/install.sh` also takes `--reset-permissions` (forget the Screen Recording and Microphone grants after installing) and `uninstall --purge` (also remove settings and cached recordings). It only touches Easy Kap, moves removed apps to the Trash, and never deletes exported recordings.
 
 Builds are ad-hoc signed. macOS ties the Screen Recording permission to the signature, so you may need to allow the app again after rebuilding.
 

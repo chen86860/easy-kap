@@ -43,18 +43,6 @@ ctx.addPath(ringStroke); ctx.clip()
 ctx.drawLinearGradient(gradient([purple, teal]), start: CGPoint(x: 230, y: 230), end: CGPoint(x: 794, y: 794), options: [])
 ctx.restoreGState()
 
-// Record dot.
-let dot = CGRect(x: center.x - 96, y: center.y - 96, width: 192, height: 192)
-ctx.saveGState()
-ctx.setShadow(offset: CGSize(width: 0, height: -6), blur: 16, color: color(0.85, 0.15, 0.12, 0.45))
-ctx.addEllipse(in: dot); ctx.setFillColor(color(1, 0.33, 0.3)); ctx.fillPath()
-ctx.restoreGState()
-ctx.saveGState()
-ctx.addEllipse(in: dot); ctx.clip()
-ctx.drawLinearGradient(gradient([color(1, 0.45, 0.40), color(0.92, 0.22, 0.20)]),
-                       start: CGPoint(x: 512, y: dot.maxY), end: CGPoint(x: 512, y: dot.minY), options: [])
-ctx.restoreGState()
-
 let image = ctx.makeImage()!
 let rep = NSBitmapImageRep(cgImage: image)
 try rep.representation(using: .png, properties: [:])!.write(to: output)

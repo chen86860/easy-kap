@@ -1,7 +1,7 @@
 DERIVED := build/DerivedData
 XCODEBUILD := xcodebuild -quiet -project Kap.xcodeproj -scheme Kap -derivedDataPath $(DERIVED)
 
-.PHONY: project build release test lint run clean
+.PHONY: project build release test lint run install uninstall clean
 
 project:
 	xcodegen generate --quiet
@@ -21,6 +21,12 @@ lint:
 
 run: build
 	open $(DERIVED)/Build/Products/Debug/EasyKap.app
+
+install:
+	Tools/install.sh
+
+uninstall:
+	Tools/install.sh uninstall
 
 clean:
 	rm -rf build Kap.xcodeproj
