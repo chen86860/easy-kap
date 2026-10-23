@@ -6,6 +6,8 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-23
+
 ### Fixed
 
 - The menu bar icon's menu opens in full below the icon. It used to open collapsed and had to be scrolled.
@@ -50,7 +52,8 @@ The first public release of Easy Kap, a native rewrite of Kap.
 
 Tagged but never released: the build crashed the Swift 6.3 compiler in Xcode 26.6. Version 0.1.1 contains the fix.
 
-[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.4
 [0.1.3]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.3
 [0.1.2]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.2
 [0.1.1]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.1
