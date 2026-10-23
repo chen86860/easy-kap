@@ -71,6 +71,12 @@ final class Recorder {
   private var segment: Segment?
   private var finishedSegments: [URL] = []
   private var sessionDirectory: URL?
+  private var streamDelegate: StreamDelegate?
+  /// Set when the stream ended on its own, for example from the system's menu bar stop button.
+  private var isStreamStopped = false
+
+  /// Called when the system stops the capture, so the recording can be saved as if the user had stopped it.
+  var onStoppedBySystem: (() -> Void)?
 
   var isRecording: Bool { stream != nil }
   var isPaused: Bool { stream != nil && segment == nil }
@@ -103,7 +109,11 @@ final class Recorder {
 
     let directory = Self.recordingsDirectory.appending(path: UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    let stream = SCStream(filter: filter, configuration: configuration, delegate: nil)
+    let streamDelegate = StreamDelegate { [weak self] in
+      Task { @MainActor in self?.handleStreamStopped() }
+    }
+    let stream = SCStream(filter: filter, configuration: configuration, delegate: streamDelegate)
+    self.streamDelegate = streamDelegate
     self.stream = stream
     sessionDirectory = directory
     do {
@@ -129,7 +139,7 @@ final class Recorder {
     guard let stream, let sessionDirectory else { throw RecorderError.notRecording }
     defer { reset() }
     try await finishSegment()
-    try await stream.stopCapture()
+    if !isStreamStopped { try await stream.stopCapture() }
 
     let destination = Self.recordingsDirectory.appending(path: FileNaming.defaultName(fileExtension: "mov"))
     try await SegmentMerger.merge(finishedSegments, into: destination)
@@ -156,12 +166,21 @@ final class Recorder {
     // Registered before awaiting so a stop that races a pause still includes this segment.
     self.segment = nil
     finishedSegments.append(segment.url)
-    try stream.removeRecordingOutput(segment.output)
+    // A stopped stream has already finished its outputs.
+    if !isStreamStopped { try stream.removeRecordingOutput(segment.output) }
     try await segment.delegate.waitUntilFinished(timeout: .seconds(5))
+  }
+
+  private func handleStreamStopped() {
+    guard stream != nil, !isStreamStopped else { return }
+    isStreamStopped = true
+    onStoppedBySystem?()
   }
 
   private func reset() {
     stream = nil
+    streamDelegate = nil
+    isStreamStopped = false
     segment = nil
     finishedSegments = []
     sessionDirectory = nil
@@ -169,6 +188,18 @@ final class Recorder {
 
   static var recordingsDirectory: URL {
     URL.cachesDirectory.appending(path: Bundle.main.bundleIdentifier ?? "EasyKap").appending(path: "Recordings")
+  }
+}
+
+nonisolated private final class StreamDelegate: NSObject, SCStreamDelegate, Sendable {
+  private let onStop: @Sendable () -> Void
+
+  init(onStop: @escaping @Sendable () -> Void) {
+    self.onStop = onStop
+  }
+
+  func stream(_ stream: SCStream, didStopWithError error: any Error) {
+    onStop()
   }
 }
 

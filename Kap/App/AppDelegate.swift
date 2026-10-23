@@ -32,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     cropper.model.onRecord = { [weak self] in self?.startRecording() }
+    recorder.onStoppedBySystem = { [weak self] in self?.stopRecording() }
     cropper.model.onCancel = { [weak self] in self?.cropper.close() }
 
     hotKey.action = { [weak self] in self?.primaryAction() }
