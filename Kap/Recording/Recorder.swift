@@ -1,6 +1,5 @@
 import AVFoundation
 import ScreenCaptureKit
-import Synchronization
 
 nonisolated enum RecorderError: LocalizedError {
   case screenRecordingDenied
@@ -56,19 +55,14 @@ nonisolated struct RecordingSettings: Sendable {
   }
 }
 
-/// Records a region of a display with ScreenCaptureKit's `SCRecordingOutput`.
+/// Records a region of a display with ScreenCaptureKit and writes it with `StreamWriter`.
 ///
-/// `SCRecordingOutput` can't pause, so pausing finishes the current segment while the stream keeps running,
-/// resuming attaches a new output, and stopping joins the segments into one movie.
+/// Pausing finishes the current segment file while the stream keeps running, resuming starts a new one,
+/// and stopping joins the segments into one movie.
 final class Recorder {
-  private struct Segment {
-    let output: SCRecordingOutput
-    let delegate: RecordingDelegate
-    let url: URL
-  }
-
   private var stream: SCStream?
-  private var segment: Segment?
+  private var writer: StreamWriter?
+  private var segmentURL: URL?
   private var finishedSegments: [URL] = []
   private var sessionDirectory: URL?
   private var streamDelegate: StreamDelegate?
@@ -81,7 +75,7 @@ final class Recorder {
   var onStoppedBySystem: (() -> Void)?
 
   var isRecording: Bool { stream != nil }
-  var isPaused: Bool { stream != nil && segment == nil }
+  var isPaused: Bool { stream != nil && segmentURL == nil }
 
   func start(displayID: CGDirectDisplayID, rect: CGRect, settings: RecordingSettings) async throws {
     guard stream == nil else { return }
@@ -115,10 +109,21 @@ final class Recorder {
       Task { @MainActor in self?.handleStreamStopped() }
     }
     let stream = SCStream(filter: filter, configuration: configuration, delegate: streamDelegate)
+    let writer = StreamWriter(
+      width: configuration.width,
+      height: configuration.height,
+      fps: settings.fps,
+      recordsSystemAudio: settings.recordsSystemAudio,
+      recordsMicrophone: settings.recordsMicrophone
+    )
     self.streamDelegate = streamDelegate
     self.stream = stream
+    self.writer = writer
     sessionDirectory = directory
     do {
+      try stream.addStreamOutput(writer, type: .screen, sampleHandlerQueue: writer.queue)
+      if settings.recordsSystemAudio { try stream.addStreamOutput(writer, type: .audio, sampleHandlerQueue: writer.queue) }
+      if settings.recordsMicrophone { try stream.addStreamOutput(writer, type: .microphone, sampleHandlerQueue: writer.queue) }
       try startSegment()
       try await stream.startCapture()
     } catch {
@@ -153,27 +158,18 @@ final class Recorder {
   }
 
   private func startSegment() throws {
-    guard let stream, let sessionDirectory else { throw RecorderError.notRecording }
+    guard let writer, let sessionDirectory else { throw RecorderError.notRecording }
     let url = sessionDirectory.appending(path: "segment-\(finishedSegments.count).mov")
-    let configuration = SCRecordingOutputConfiguration()
-    configuration.outputURL = url
-    configuration.outputFileType = .mov
-    configuration.videoCodecType = .h264
-
-    let delegate = RecordingDelegate()
-    let output = SCRecordingOutput(configuration: configuration, delegate: delegate)
-    try stream.addRecordingOutput(output)
-    segment = Segment(output: output, delegate: delegate, url: url)
+    try writer.startSegment(at: url)
+    segmentURL = url
   }
 
   private func finishSegment() async throws {
-    guard let stream, let segment else { return }
+    guard let writer, let segmentURL else { return }
     // Registered before awaiting so a stop that races a pause still includes this segment.
-    self.segment = nil
-    finishedSegments.append(segment.url)
-    // A stopped stream has already finished its outputs.
-    if !isStreamStopped { try stream.removeRecordingOutput(segment.output) }
-    try await segment.delegate.waitUntilFinished(timeout: .seconds(5))
+    self.segmentURL = nil
+    finishedSegments.append(segmentURL)
+    try await writer.finishSegment()
   }
 
   private func handleStreamStopped() {
@@ -186,9 +182,10 @@ final class Recorder {
   private func reset() {
     isStopping = false
     stream = nil
+    writer = nil
     streamDelegate = nil
     isStreamStopped = false
-    segment = nil
+    segmentURL = nil
     finishedSegments = []
     sessionDirectory = nil
   }
@@ -207,49 +204,5 @@ nonisolated private final class StreamDelegate: NSObject, SCStreamDelegate, Send
 
   func stream(_ stream: SCStream, didStopWithError error: any Error) {
     onStop()
-  }
-}
-
-nonisolated private final class RecordingDelegate: NSObject, SCRecordingOutputDelegate, Sendable {
-  private struct State {
-    var result: Result<Void, any Error>?
-    var continuation: CheckedContinuation<Void, any Error>?
-  }
-
-  private let state = Mutex(State())
-
-  func recordingOutputDidFinishRecording(_ recordingOutput: SCRecordingOutput) {
-    complete(.success(()))
-  }
-
-  func recordingOutput(_ recordingOutput: SCRecordingOutput, didFailWithError error: any Error) {
-    complete(.failure(error))
-  }
-
-  /// Waits for the file to be finalized. Falls back to success after `timeout` because the callback is not guaranteed.
-  func waitUntilFinished(timeout: Duration) async throws {
-    let timeoutTask = Task { [weak self] in
-      try await Task.sleep(for: timeout)
-      self?.complete(.success(()))
-    }
-    defer { timeoutTask.cancel() }
-    try await withCheckedThrowingContinuation { continuation in
-      let result = state.withLock { state -> Result<Void, any Error>? in
-        if let result = state.result { return result }
-        state.continuation = continuation
-        return nil
-      }
-      if let result { continuation.resume(with: result) }
-    }
-  }
-
-  private func complete(_ result: Result<Void, any Error>) {
-    let continuation = state.withLock { state -> CheckedContinuation<Void, any Error>? in
-      guard state.result == nil else { return nil }
-      state.result = result
-      defer { state.continuation = nil }
-      return state.continuation
-    }
-    continuation?.resume(with: result)
   }
 }

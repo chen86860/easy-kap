@@ -38,7 +38,7 @@ final class StatusItemController: NSObject {
       recordedBeforeResume = 0
       resumedAt = nil
       item.length = NSStatusItem.squareLength
-      button.image = NSImage(named: "menubarDefaultTemplate")
+      button.image = Self.ring(color: .black, isTemplate: true)
       button.title = ""
       button.toolTip = "Easy Kap"
     case .recording:
@@ -64,17 +64,18 @@ final class StatusItemController: NSObject {
   /// Wide enough for the ring and "99:59", so the item keeps one size for the whole recording.
   private static let recordingLength: CGFloat = 70
 
-  /// Kap's ring at the menu bar icon's 16pt size, filled while recording.
-  private static func ring(color: NSColor) -> NSImage {
-    NSImage(size: CGSize(width: 16, height: 16), flipped: false) { rect in
-      let ring = NSBezierPath(ovalIn: rect.insetBy(dx: 1.75, dy: 1.75))
-      ring.lineWidth = 2
+  /// Kap's ring, drawn for every state so recording changes only its color, never its size or line width.
+  private static func ring(color: NSColor, isTemplate: Bool = false) -> NSImage {
+    let image = NSImage(size: CGSize(width: 16, height: 16), flipped: false) { rect in
+      let lineWidth: CGFloat = 2
+      let ring = NSBezierPath(ovalIn: rect.insetBy(dx: lineWidth / 2, dy: lineWidth / 2))
+      ring.lineWidth = lineWidth
       color.setStroke()
       ring.stroke()
-      color.setFill()
-      NSBezierPath(ovalIn: rect.insetBy(dx: 5, dy: 5)).fill()
       return true
     }
+    image.isTemplate = isTemplate
+    return image
   }
 
   private func updateTitle() {

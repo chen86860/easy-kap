@@ -6,6 +6,22 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-24
+
+### Added
+
+- Settings shows Easy Kap's icon, version and links to the website, the GitHub repository, the release notes and the issue tracker.
+
+### Fixed
+
+- While recording, the menu bar shows only Easy Kap's own icon. macOS used to add a second, white stop button next to it.
+- The editor opens in front of other apps after a recording stops. It used to open behind the app you were using.
+
+### Changed
+
+- The menu bar ring has a bolder line, and keeps the same size and line width while recording: red while recording, grey while paused.
+- Settings groups recording options into Video and Audio sections.
+
 ## [0.1.4] - 2026-10-23
 
 ### Fixed
@@ -52,7 +68,8 @@ The first public release of Easy Kap, a native rewrite of Kap.
 
 Tagged but never released: the build crashed the Swift 6.3 compiler in Xcode 26.6. Version 0.1.1 contains the fix.
 
-[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.5
 [0.1.4]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.4
 [0.1.3]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.3
 [0.1.2]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.2

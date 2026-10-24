@@ -135,8 +135,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       self?.editors.removeAll { $0 === closed }
     }
     editors.append(editor)
-    NSApp.activate()
+    // A recording often ends from the system's stop button while another app is active. macOS refuses the
+    // cooperative activate() then, and the editor opened behind that app, so this activation forces it.
+    NSApp.activate(ignoringOtherApps: true)
     editor.showWindow(nil)
+    editor.window?.orderFrontRegardless()
   }
 
   @objc private func openVideo() {

@@ -11,6 +11,10 @@ struct PreferencesView: View {
 
   var body: some View {
     Form {
+      Section {
+        AboutHeader()
+      }
+
       Section("General") {
         LabeledContent("Save to") {
           HStack {
@@ -26,11 +30,14 @@ struct PreferencesView: View {
         }
       }
 
-      Section("Recording") {
+      Section("Video") {
         Toggle("Show cursor", isOn: $preferences.showCursor)
         Toggle("Highlight clicks", isOn: $preferences.highlightClicks)
           .disabled(!preferences.showCursor)
         Toggle("Record at 60 FPS", isOn: $preferences.record60fps)
+      }
+
+      Section("Audio") {
         Toggle("Record system audio", isOn: $preferences.recordSystemAudio)
         Toggle("Record microphone", isOn: $preferences.recordAudio)
         if preferences.recordAudio {
@@ -43,22 +50,22 @@ struct PreferencesView: View {
         }
       }
 
+      Section("Export") {
+        Toggle("Loop GIF and APNG exports", isOn: $preferences.loopExports)
+      }
+
       if let updater {
         Section("Updates") {
           Toggle("Check for updates automatically", isOn: $checksForUpdates)
             .onChange(of: checksForUpdates) { updater.automaticallyChecksForUpdates = checksForUpdates }
-          LabeledContent("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")") {
+          LabeledContent("Easy Kap \(AppInfo.version)") {
             Button("Check Now") { updater.checkForUpdates() }
           }
         }
       }
-
-      Section("Export") {
-        Toggle("Loop GIF and APNG exports", isOn: $preferences.loopExports)
-      }
     }
     .formStyle(.grouped)
-    .frame(width: 480)
+    .frame(width: 500)
     .fixedSize(horizontal: false, vertical: true)
     .task {
       microphones = Microphones.all
@@ -76,6 +83,50 @@ struct PreferencesView: View {
     if panel.runModal() == .OK, let url = panel.url {
       preferences.kapturesDirectory = url
     }
+  }
+}
+
+enum AppInfo {
+  static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+  static let website = URL(string: "https://easy-kap.emmmm.dev")!
+  static let repository = URL(string: "https://github.com/chen86860/easy-kap")!
+  static let changelog = URL(string: "https://github.com/chen86860/easy-kap/blob/main/CHANGELOG.md")!
+  static let issues = URL(string: "https://github.com/chen86860/easy-kap/issues")!
+  static let kap = URL(string: "https://github.com/wulkano/Kap")!
+}
+
+/// The app icon, name, version and project links at the top of Settings.
+struct AboutHeader: View {
+  var body: some View {
+    HStack(spacing: 16) {
+      Image(nsImage: NSApp.applicationIconImage)
+        .resizable()
+        .frame(width: 64, height: 64)
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+          Text("Easy Kap")
+            .font(.title2.weight(.semibold))
+          Text("Version \(AppInfo.version)")
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .textSelection(.enabled)
+        }
+        Text("Inspired by [Kap](\(AppInfo.kap.absoluteString)) · MIT License")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .tint(.secondary)
+        HStack(spacing: 14) {
+          Link("Website", destination: AppInfo.website)
+          Link("GitHub", destination: AppInfo.repository)
+          Link("What's New", destination: AppInfo.changelog)
+          Link("Report an Issue", destination: AppInfo.issues)
+        }
+        .font(.callout)
+        .padding(.top, 4)
+      }
+      Spacer(minLength: 0)
+    }
+    .padding(.vertical, 6)
   }
 }
 
