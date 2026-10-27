@@ -39,6 +39,14 @@ Requires macOS 15+.
 3. Open Easy Kap. It's signed with a Developer ID and notarized by Apple, so it opens like any other app.
 4. Record once and allow Screen Recording when macOS asks, then reopen Easy Kap.
 
+Or install it with [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask chen86860/tap/easy-kap
+```
+
+Easy Kap updates itself, so there's no need to `brew upgrade` it.
+
 ## Develop
 
 ```sh

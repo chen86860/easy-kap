@@ -302,6 +302,10 @@ function Home() {
                 />
               </Frame>
               <pre className="bg-ink overflow-x-auto rounded-2xl p-5.5 font-mono text-sm leading-[1.8] text-[#e9ecff]">
+                <span className="text-[#8e97b8]"># or install it with Homebrew</span>
+                {"\n"}
+                <span className="text-teal select-none">$ </span>brew install --cask chen86860/tap/easy-kap
+                {"\n\n"}
                 <span className="text-[#8e97b8]"># or build it from source</span>
                 {"\n"}
                 <span className="text-teal select-none">$ </span>git clone {repositoryURL}
