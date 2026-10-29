@@ -2,52 +2,60 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Layout: the page is a desktop being recorded. The hero is a live area picker; each section below is a captured frame. */
+/* A light desk: a soft gray ground, white raised surfaces with keycap edges, one teal accent taken from the Kap ring. */
 :root {
-  --paper: #f3f6f8; /* cool page ground, a touch of teal */
-  --panel: #ffffff;
-  --ink: #141829; /* indigo-black */
-  --muted-ink: #5a6377;
-  --line: #dbe2e9;
-  --violet: #6458f5; /* Kap ring, start */
-  --teal: #12d6be; /* Kap ring, end */
-  --rec: #ff453a;
+  --ground: #f4f4f5;
+  --surface: #ffffff;
+  --raised: #fafafa;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --ink: #18181b;
+  --muted-ink: #71717a;
+  --accent: #12d6be; /* Kap ring, teal end */
+  --violet: #6458f5; /* Kap ring, violet start: the logo and hero light only */
+  --rec: #ff453a; /* The record button, as in the app */
 
   /* shadcn tokens, mapped onto the palette above. The page is deliberately light only. */
-  --background: var(--paper);
+  --background: var(--ground);
   --foreground: var(--ink);
-  --card: var(--panel);
+  --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: var(--panel);
+  --popover: var(--raised);
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: #ffffff;
-  --secondary: var(--panel);
+  --secondary: var(--raised);
   --secondary-foreground: var(--ink);
-  --muted: #e8edf2;
+  --muted: var(--raised);
   --muted-foreground: var(--muted-ink);
-  --accent: #eceafe;
   --accent-foreground: var(--ink);
   --destructive: var(--rec);
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--violet);
+  --ring: var(--accent);
   --radius: 0.75rem;
   color-scheme: light;
+
+  /* One stacking scale for the whole site, used as z-(--z-nav) and so on. */
+  --z-overlay: 10;
+  --z-chrome: 20;
+  --z-toast: 30;
+  --z-nav: 40;
+  --z-grain: 50;
 }
 
 @theme inline {
-  --font-display: "Unbounded", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  --font-sans: "Figtree", "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-heading: var(--font-display);
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  --color-paper: var(--paper);
-  --color-panel: var(--panel);
-  --color-ink: var(--ink);
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
   --color-violet: var(--violet);
-  --color-teal: var(--teal);
   --color-rec: var(--rec);
 
   --color-background: var(--background);
@@ -72,61 +80,71 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Kap's ring: the logo is the only place it still appears. */
 @utility bg-kap-ring {
-  background-image: linear-gradient(135deg, var(--violet), var(--teal));
+  background-image: linear-gradient(135deg, var(--violet), var(--accent));
 }
 
-/* The ring gradient flows slowly through the text, out and back. */
-@utility text-kap-ring {
-  background-image: linear-gradient(110deg, var(--violet), var(--teal), var(--violet));
-  background-size: 220% 100%;
+/* The hero heading's text, lit from the left. */
+@utility text-hero {
+  background-image: linear-gradient(90deg, #000000, #666666);
   background-clip: text;
   color: transparent;
-  animation: ring-flow 7s ease-in-out infinite alternate;
-}
-@keyframes ring-flow {
-  to {
-    background-position: 100% 0;
-  }
 }
 
-/* The download button's glow turns around it. */
-@property --ring-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
+/* A dotted desk, as if the page itself were under the cropper. */
+@utility bg-dots {
+  background-color: var(--raised);
+  background-image: radial-gradient(circle at 1px 1px, rgb(24 24 27 / 0.12) 1px, transparent 0);
+  background-size: 16px 16px;
 }
-.cta-glow {
-  background: conic-gradient(from var(--ring-angle), var(--violet), var(--teal), #ff8a7a, var(--violet));
-  animation: ring-turn 5s linear infinite;
+
+/* A white keycap: a hairline edge, a lit top and a shadow that grounds it, lit from above like the rest of the page. */
+@utility keycap {
+  background-color: var(--surface);
+  box-shadow:
+    0 0 0 1px rgb(24 24 27 / 0.08),
+    0 1px 2px rgb(24 24 27 / 0.06),
+    0 4px 12px -4px rgb(24 24 27 / 0.08),
+    inset 0 -2px 0 rgb(24 24 27 / 0.04),
+    inset 0 1px 0 #ffffff;
 }
-@keyframes ring-turn {
-  to {
-    --ring-angle: 360deg;
-  }
+
+/* The dark keycap of the main action. */
+@utility keycap-ink {
+  background-color: var(--ink);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 1px var(--ink),
+    0 2px 4px rgb(24 24 27 / 0.2),
+    0 8px 20px -8px rgb(24 24 27 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4);
 }
-.cta-sheen::after {
+
+/* A field of dots behind the hero, like the grid under the cropper. The teal layer shows only around --x and --y, which follow the pointer. */
+.dot-field,
+.dot-field::after {
+  background-image: radial-gradient(circle at 2px 2px, var(--dot) var(--dot-size), transparent 0);
+  background-size: 20px 20px;
+}
+.dot-field {
+  --dot: rgb(24 24 27 / 0.16);
+  --dot-size: 1px;
+  mask-image: radial-gradient(60% 70% at 50% 40%, #000 40%, transparent 100%);
+}
+.dot-field::after {
+  --dot: var(--accent);
+  --dot-size: 2px;
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.28) 50%, transparent 70%);
-  transform: translateX(-120%);
-}
-.group:hover .cta-sheen::after {
-  transform: translateX(120%);
-  transition: transform 0.9s ease;
-}
-
-/* Soft light drifting behind the hero. */
-@keyframes drift {
-  50% {
-    transform: translate3d(var(--drift-x, 40px), var(--drift-y, -30px), 0) scale(1.08);
-  }
-}
-.orb {
-  animation: drift 14s ease-in-out infinite;
+  mask-image: radial-gradient(280px circle at var(--x, 50%) var(--y, 30%), #000 30%, transparent);
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -135,34 +153,33 @@
   }
   html {
     scroll-behavior: smooth;
-    /* The hero's drifting light extends past the gutter; clip it without making the page scroll sideways. */
-    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
-    /* A faint pixel grid, as if the page itself were under the cropper. */
-    background-image: radial-gradient(circle at 1px 1px, rgb(20 24 41 / 0.07) 1px, transparent 0);
-    background-size: 22px 22px;
+  }
+  /* Fine film grain over everything, so the flat black has some texture. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-grain);
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   h1,
   h2,
   h3 {
-    @apply font-display font-bold tracking-tight text-balance;
+    @apply font-semibold tracking-tight text-balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2;
   }
-}
-
-/* The wallpaper of the demo desktop. */
-.desk-wallpaper {
-  background:
-    radial-gradient(60% 70% at 15% 20%, #e3ddff 0%, transparent 60%),
-    radial-gradient(55% 60% at 90% 30%, #c9f6ee 0%, transparent 60%),
-    radial-gradient(70% 60% at 60% 100%, #fde3dc 0%, transparent 60%),
-    #eef2f6;
 }
 
 /* The recording outline marches, like a selection being captured. */
@@ -181,17 +198,8 @@
   }
 }
 .chart-bar {
-  animation: grow 3.2s ease-in-out infinite alternate;
+  animation: grow 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
   transform-origin: bottom;
-}
-
-@keyframes spin-slow {
-  to {
-    transform: rotate(1turn);
-  }
-}
-.ring-spin {
-  animation: spin-slow 9s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -199,7 +207,7 @@
   *::before,
   *::after {
     animation: none !important;
-    transition: none !important;
+    transition-property: opacity !important;
   }
   html {
     scroll-behavior: auto;

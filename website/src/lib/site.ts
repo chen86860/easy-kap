@@ -3,3 +3,5 @@ export const repositoryURL = "https://github.com/chen86860/easy-kap";
 export const dmgURL = `${repositoryURL}/releases/latest/download/EasyKap.dmg`;
 export const releasesURL = `${repositoryURL}/releases`;
 export const kapURL = "https://github.com/wulkano/Kap";
+export const changelogURL = `${repositoryURL}/blob/main/CHANGELOG.md`;
+export const licenseURL = `${repositoryURL}/blob/main/LICENSE`;

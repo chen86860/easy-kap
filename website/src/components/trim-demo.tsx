@@ -58,18 +58,21 @@ export function TrimDemo() {
   const shown = clamp(playhead, trim.start, trim.end);
 
   return (
-    <div className="relative aspect-video overflow-hidden rounded-[14px] bg-[#10142a]">
+    <div className="bg-dots border-line-strong relative aspect-video overflow-hidden rounded-2xl border">
+      {/* The recorded window, drifting with the playhead so the loop is visible. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(60% 80% at 20% 30%, #3c33b8 0%, transparent 60%), radial-gradient(60% 70% at 85% 60%, #0f9c8b 0%, transparent 60%)",
-        }}
-      />
-      <p className="absolute inset-x-0 top-3 text-center text-sm font-semibold text-white/90">Kapture 2026-10-23 at 17.17.02</p>
+        className="bg-surface border-line-strong absolute top-[18%] left-[14%] grid h-[52%] w-[60%] content-start gap-3 rounded-lg border p-[4%]"
+        style={{ transform: `translateX(${(shown / duration) * 24}%)` }}
+      >
+        <i className="bg-accent h-2 w-2/5 rounded" />
+        <i className="bg-line-strong h-2 rounded" />
+        <i className="bg-line-strong h-2 w-4/5 rounded" />
+        <i className="bg-line-strong h-2 w-3/5 rounded" />
+      </div>
+      <p className="absolute inset-x-0 top-3 text-muted-foreground text-center text-sm font-medium">Kapture 2026-10-23 at 17.17.02</p>
 
-      <div className="absolute inset-x-0 bottom-0 flex items-center gap-3.5 bg-gradient-to-b from-transparent to-black/70 px-4.5 pt-7 pb-3.5 font-mono text-xs text-white tabular-nums">
+      <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 bg-black/60 px-4 py-3 font-mono text-xs text-white tabular-nums backdrop-blur-md">
         <span>{timecode(shown - trim.start)}</span>
         <div
           ref={trackRef}
@@ -79,7 +82,7 @@ export function TrimDemo() {
           aria-valuemin={0}
           aria-valuemax={duration}
           aria-valuenow={Math.round(shown * 10) / 10}
-          className="group relative h-6.5 flex-1 cursor-pointer"
+          className="group relative h-6 flex-1 cursor-pointer"
           onPointerMove={(event) => setHoverTime(timeAt(event.clientX))}
           onPointerLeave={() => setHoverTime(null)}
           onClick={(event) => setPlayhead(clamp(timeAt(event.clientX), trim.start, trim.end))}
@@ -90,28 +93,24 @@ export function TrimDemo() {
             setPlayhead((time) => clamp(time + step, trim.start, trim.end));
           }}
         >
-          <span className="absolute inset-x-0 top-[11px] h-1 rounded-full bg-white/25" />
-          <span className="absolute top-[11px] h-1 bg-white/50" style={{ left: percent(trim.start), width: percent(trim.end - trim.start) }} />
-          <span className="bg-kap-ring absolute top-[11px] h-1" style={{ left: percent(trim.start), width: percent(shown - trim.start) }} />
+          <span className="absolute inset-x-0 top-2.5 h-1 rounded-full bg-white/20" />
+          <span className="absolute top-2.5 h-1 bg-white/40" style={{ left: percent(trim.start), width: percent(trim.end - trim.start) }} />
+          <span className="bg-accent absolute top-2.5 h-1" style={{ left: percent(trim.start), width: percent(shown - trim.start) }} />
           {(["start", "end"] as const).map((edge) => (
             <span
               key={edge}
               aria-hidden="true"
               {...dragHandle(edge)}
-              className="absolute top-1 -ml-[3px] h-[18px] w-1.5 cursor-ew-resize rounded-[3px] bg-white shadow-[0_1px_3px_rgb(0_0_0/0.4)]"
+              className="absolute top-0.5 -ml-0.75 h-5 w-1.5 cursor-ew-resize rounded-xs bg-white shadow-[0_1px_4px_rgb(0_0_0/0.5)]"
               style={{ left: percent(trim[edge]) }}
             />
           ))}
           {hoverTime !== null && (
             <span
-              className="pointer-events-none absolute bottom-8.5 -ml-15 grid aspect-video w-30 place-items-end justify-center overflow-hidden rounded-lg border border-white/40 pb-1.5"
-              style={{
-                left: `${clamp((hoverTime / duration) * 100, 8, 92)}%`,
-                background:
-                  "radial-gradient(70% 90% at 30% 30%, #4b41d6, transparent 65%), radial-gradient(60% 80% at 90% 70%, #13b5a1, transparent 60%), #151a35",
-              }}
+              className="bg-dots pointer-events-none absolute bottom-8 -ml-15 grid aspect-video w-30 place-items-end justify-center overflow-hidden rounded-lg border border-white/30 pb-2"
+              style={{ left: `${clamp((hoverTime / duration) * 100, 8, 92)}%` }}
             >
-              <span className="rounded-[5px] bg-black/55 px-1.5 py-0.5">
+              <span className="rounded-sm bg-black/70 px-2 py-0.5">
                 {timecode(Math.max(0, hoverTime - trim.start))} ({timecode(hoverTime)})
               </span>
             </span>
