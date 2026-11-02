@@ -3,9 +3,9 @@ import ImageIO
 import UniformTypeIdentifiers
 
 nonisolated enum ExportFormat: String, CaseIterable, Identifiable, Sendable {
-  case gif
   case mp4
   case hevc
+  case gif
   case apng
 
   var id: Self { self }

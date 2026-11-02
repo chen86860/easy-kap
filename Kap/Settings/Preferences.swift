@@ -79,7 +79,7 @@ final class Preferences {
       Key.recordAudio: false,
       Key.recordSystemAudio: false,
       Key.loopExports: true,
-      Key.lastExportFormat: ExportFormat.gif.rawValue
+      Key.lastExportFormat: ExportFormat.mp4.rawValue
     ])
 
     kapturesDirectory = URL(filePath: defaults.string(forKey: Key.kapturesDirectory) ?? "", directoryHint: .isDirectory)
@@ -90,7 +90,7 @@ final class Preferences {
     recordSystemAudio = defaults.bool(forKey: Key.recordSystemAudio)
     audioDeviceID = defaults.string(forKey: Key.audioDeviceID)
     loopExports = defaults.bool(forKey: Key.loopExports)
-    lastExportFormat = defaults.string(forKey: Key.lastExportFormat).flatMap(ExportFormat.init(rawValue:)) ?? .gif
+    lastExportFormat = defaults.string(forKey: Key.lastExportFormat).flatMap(ExportFormat.init(rawValue:)) ?? .mp4
     lastSelection = defaults.data(forKey: Key.lastSelection).flatMap { try? JSONDecoder().decode(SavedSelection.self, from: $0) }
     let language = defaults.string(forKey: Key.language).flatMap(AppLanguage.init(rawValue:)) ?? .system
     self.language = language

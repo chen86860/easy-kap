@@ -24,4 +24,12 @@ struct PreferencesTests {
     relaunched.language = .system
     #expect(appleLanguages() == nil)
   }
+
+  @Test func exportsMP4ByDefault() throws {
+    let suite = "kap-tests-\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+    #expect(Preferences(defaults: defaults).lastExportFormat == .mp4)
+    #expect(ExportFormat.allCases == [.mp4, .hevc, .gif, .apng])
+  }
 }
