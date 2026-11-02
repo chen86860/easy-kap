@@ -47,6 +47,12 @@ brew install --cask chen86860/tap/easy-kap
 
 Easy Kap updates itself, so there's no need to `brew upgrade` it.
 
+## Privacy
+
+Easy Kap sends anonymous usage data to help decide what to improve: app launches, when a recording starts, finishes or fails, and which formats and settings exports use, along with the app version, macOS version and language. Events are tied to a random ID made on your Mac, not to you. They never include your recordings, file names, paths or error messages. The code that sends them is in [`Kap/App/Telemetry.swift`](Kap/App/Telemetry.swift).
+
+It's on by default. Turn it off in **Settings → General → Privacy → Share anonymous usage data**.
+
 ## Develop
 
 ```sh

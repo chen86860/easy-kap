@@ -2,7 +2,7 @@ import AVFoundation
 import Sparkle
 import SwiftUI
 
-/// Permissions, where recordings go, the shortcut, the language, and export options.
+/// Permissions, where recordings go, the shortcut, the language, export options, and usage data.
 struct GeneralSettingsView: View {
   @Bindable var preferences: Preferences
   /// Opens System Settings with the drag guide beside it.
@@ -58,6 +58,13 @@ struct GeneralSettingsView: View {
 
       Section("Export") {
         Toggle("Loop GIF and APNG exports", isOn: $preferences.loopExports)
+      }
+
+      Section("Privacy") {
+        Toggle(isOn: $preferences.sendsUsageData) {
+          Text("Share anonymous usage data")
+          Text("Helps improve Easy Kap. Only which features you use is sent, never your recordings or file names.")
+        }
       }
     }
     .settingsPane()

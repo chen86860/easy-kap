@@ -11,6 +11,7 @@ import {
   PauseIcon,
   ScissorsIcon,
   SelectionIcon,
+  ShieldCheckIcon,
   WaveformIcon,
 } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -380,12 +381,13 @@ function Home() {
                 </li>
               ))}
             </ol>
-            <ul className="text-muted-foreground mt-16 grid gap-8 text-sm md:grid-cols-3">
+            <ul className="text-muted-foreground mt-16 grid gap-8 text-sm sm:grid-cols-2 lg:grid-cols-4">
               {(
                 [
                   [CursorClickIcon, "Click the ring in the menu bar to start, or set a shortcut in Settings."],
                   [FolderSimpleIcon, "Exports land in ~/Movies/Kaptures."],
                   [ArrowsClockwiseIcon, "Updates install themselves, or choose Check for Updates from the menu bar."],
+                  [ShieldCheckIcon, "Easy Kap shares anonymous usage data, never your recordings or file names. Turn it off in Settings."],
                 ] as const
               ).map(([Icon, tip]) => (
                 <li key={tip} className="grid grid-cols-[20px_1fr] gap-3">

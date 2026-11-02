@@ -499,6 +499,16 @@
     "GitHub": {
       "shouldTranslate": false
     },
+    "Helps improve Easy Kap. Only which features you use is sent, never your recordings or file names.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助改进 Easy Kap。只发送你使用了哪些功能，绝不发送录制内容或文件名。"
+          }
+        }
+      }
+    },
     "Highlight clicks": {
       "localizations": {
         "zh-Hans": {
@@ -759,6 +769,16 @@
         }
       }
     },
+    "Privacy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私"
+          }
+        }
+      }
+    },
     "Quit Easy Kap": {
       "localizations": {
         "zh-Hans": {
@@ -975,6 +995,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "设置…"
+          }
+        }
+      }
+    },
+    "Share anonymous usage data": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共享匿名使用数据"
           }
         }
       }

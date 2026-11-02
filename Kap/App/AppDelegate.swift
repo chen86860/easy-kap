@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var isStartingRecording = false
   /// Set the moment a stop is requested, before the recorder's async stop begins, so a quick second click is ignored.
   private var isStoppingRecording = false
+  private var recordingStartDate: Date?
 
   static func main() {
     let app = NSApplication.shared
@@ -53,6 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Without Screen Recording access nothing can be recorded, so the first launch starts in Settings, which shows
     // the permission and a button that guides the user through granting it.
     if !ScreenRecordingPermission.isGranted { showSettings(.general) }
+    Telemetry.capture("app_launched", ["screen_recording_allowed": ScreenRecordingPermission.isGranted])
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
@@ -99,7 +101,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       do {
         try await recorder.start(displayID: displayID, rect: rect, settings: settings)
         statusItem?.setState(.recording)
+        recordingStartDate = .now
+        Telemetry.capture("recording_started", [
+          "fps": settings.fps,
+          "shows_cursor": settings.showsCursor,
+          "highlights_clicks": settings.showsClicks,
+          "records_microphone": settings.recordsMicrophone,
+          "records_system_audio": settings.recordsSystemAudio
+        ])
       } catch {
+        Telemetry.capture("recording_failed", ["error": Telemetry.errorKind(error)])
         cropper.close()
         present(error)
       }
@@ -115,8 +126,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       cropper.close()
       statusItem?.setState(.idle)
       do {
-        openEditor(try await recorder.stop())
+        let url = try await recorder.stop()
+        // Includes paused time: the span from start to stop.
+        let elapsed = recordingStartDate.map { Date.now.timeIntervalSince($0) } ?? 0
+        Telemetry.capture("recording_finished", ["elapsed_seconds": elapsed.rounded()])
+        openEditor(url)
       } catch {
+        Telemetry.capture("recording_failed", ["error": Telemetry.errorKind(error)])
         present(error)
       }
     }

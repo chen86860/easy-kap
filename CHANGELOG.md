@@ -6,6 +6,10 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+### Added
+
+- Easy Kap sends anonymous usage data, such as which export formats are used and whether recordings fail, to help find what to improve. It never includes your recordings, file names or paths. Turn it off in Settings → General → Privacy.
+
 ## [0.1.7] - 2026-11-02
 
 ### Changed

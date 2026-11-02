@@ -24,6 +24,15 @@ final class EditorModel {
       case .openWith(let application): OpenWithApplications.name(of: application)
       }
     }
+
+    /// The kind of destination, without the app's name.
+    var telemetryName: String {
+      switch self {
+      case .saveToDisk: "save_to_disk"
+      case .copyToClipboard: "copy_to_clipboard"
+      case .openWith: "open_with"
+      }
+    }
   }
 
   let url: URL
@@ -225,10 +234,18 @@ final class EditorModel {
           }
         }
         hasExported = true
+        Telemetry.capture("export_finished", [
+          "format": options.format.rawValue,
+          "destination": target.telemetryName,
+          "duration_seconds": (options.end - options.start).rounded(),
+          "fps": options.fps,
+          "muted": options.isMuted
+        ])
         exportState = .finished(destination, note: await deliver(destination, to: target))
       } catch is CancellationError {
         exportState = .idle
       } catch {
+        Telemetry.capture("export_failed", ["format": options.format.rawValue, "error": Telemetry.errorKind(error)])
         exportState = .failed(error.localizedDescription)
       }
     }

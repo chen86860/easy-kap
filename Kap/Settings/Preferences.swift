@@ -42,6 +42,10 @@ final class Preferences {
   var loopExports: Bool {
     didSet { defaults.set(loopExports, forKey: Key.loopExports) }
   }
+  /// Whether anonymous usage events are sent; see `Telemetry`.
+  var sendsUsageData: Bool {
+    didSet { defaults.set(sendsUsageData, forKey: Key.sendsUsageData) }
+  }
   var lastExportFormat: ExportFormat {
     didSet { defaults.set(lastExportFormat.rawValue, forKey: Key.lastExportFormat) }
   }
@@ -79,6 +83,7 @@ final class Preferences {
       Key.recordAudio: false,
       Key.recordSystemAudio: false,
       Key.loopExports: true,
+      Key.sendsUsageData: true,
       Key.lastExportFormat: ExportFormat.mp4.rawValue
     ])
 
@@ -90,6 +95,7 @@ final class Preferences {
     recordSystemAudio = defaults.bool(forKey: Key.recordSystemAudio)
     audioDeviceID = defaults.string(forKey: Key.audioDeviceID)
     loopExports = defaults.bool(forKey: Key.loopExports)
+    sendsUsageData = defaults.bool(forKey: Key.sendsUsageData)
     lastExportFormat = defaults.string(forKey: Key.lastExportFormat).flatMap(ExportFormat.init(rawValue:)) ?? .mp4
     lastSelection = defaults.data(forKey: Key.lastSelection).flatMap { try? JSONDecoder().decode(SavedSelection.self, from: $0) }
     let language = defaults.string(forKey: Key.language).flatMap(AppLanguage.init(rawValue:)) ?? .system
@@ -107,6 +113,7 @@ final class Preferences {
     static let recordSystemAudio = "recordSystemAudio"
     static let audioDeviceID = "audioDeviceID"
     static let loopExports = "loopExports"
+    static let sendsUsageData = "sendsUsageData"
     static let lastExportFormat = "lastExportFormat"
     static let lastSelection = "lastSelection"
     static let shortcut = "shortcut"
