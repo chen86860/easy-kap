@@ -24,12 +24,12 @@ enum ActionBarControl: Hashable {
 
   var tip: String {
     switch self {
-    case .cancel: "Cancel (Esc)"
-    case .ratio: "Aspect ratio"
-    case .screen: "Record a screen"
-    case .window: "Record an app's window"
-    case .fullScreen: "Select this entire screen"
-    case .record: "Start recording (Return)"
+    case .cancel: String(localized: "Cancel (Esc)")
+    case .ratio: String(localized: "Aspect ratio")
+    case .screen: String(localized: "Record a screen")
+    case .window: String(localized: "Record an app's window")
+    case .fullScreen: String(localized: "Select this entire screen")
+    case .record: String(localized: "Start recording (Return)")
     }
   }
 

@@ -113,7 +113,7 @@ nonisolated final class StreamWriter: NSObject, SCStreamOutput, @unchecked Senda
 nonisolated enum StreamWriterError: LocalizedError {
   case cannotWrite
 
-  var errorDescription: String? { "The recording could not be written." }
+  var errorDescription: String? { String(localized: "The recording could not be written.") }
 }
 
 /// Only used on `StreamWriter.queue`.

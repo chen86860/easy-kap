@@ -46,7 +46,7 @@ final class StatusItemController: NSObject {
       // The system adds its own stop button to the menu bar while recording, so Kap's ring stays recognizable here.
       item.length = Self.recordingLength
       button.image = Self.ring(color: .systemRed)
-      button.toolTip = "Click to stop, right-click to pause"
+      button.toolTip = String(localized: "Click to stop, right-click to pause")
       updateTitle()
       timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
         MainActor.assumeIsolated { self?.updateTitle() }
@@ -56,7 +56,7 @@ final class StatusItemController: NSObject {
       resumedAt = nil
       item.length = Self.recordingLength
       button.image = Self.ring(color: .secondaryLabelColor)
-      button.toolTip = "Paused — click to stop, right-click to resume"
+      button.toolTip = String(localized: "Paused — click to stop, right-click to resume")
       updateTitle()
     }
   }

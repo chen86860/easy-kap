@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private let cropper = CropperController()
   private let recorder = Recorder()
   private let hotKey = GlobalHotKey()
+  private let permissionGuide = PermissionGuide()
   private var statusItem: StatusItemController?
   private var editors: [EditorWindowController] = []
   private var preferencesWindow: NSWindow?
@@ -45,6 +46,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     hotKey.action = { [weak self] in self?.primaryAction() }
     hotKey.register(preferences.shortcut)
     preferences.onShortcutChange = { [weak self] in self?.hotKey.register($0) }
+
+    // Without Screen Recording access nothing can be recorded, so the first launch starts in Settings, which shows
+    // the permission and a button that guides the user through granting it.
+    if !ScreenRecordingPermission.isGranted { showPreferences() }
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
@@ -64,7 +69,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     } else if cropper.isOpen {
       cropper.close()
     } else if !isStartingRecording {
-      cropper.open()
+      if ScreenRecordingPermission.isGranted {
+        cropper.open()
+      } else {
+        showScreenRecordingGuide()
+      }
     }
   }
 
@@ -156,11 +165,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     updaterController?.checkForUpdates(nil)
   }
 
+  /// Settings, which shows whether access is granted, plus System Settings with the drag guide beside it.
+  private func showScreenRecordingGuide() {
+    showPreferences()
+    permissionGuide.show()
+  }
+
   @objc private func showPreferences() {
     if preferencesWindow == nil {
-      let view = PreferencesView(preferences: preferences, updater: updaterController?.updater)
+      let view = PreferencesView(preferences: preferences, updater: updaterController?.updater) { [weak self] in
+        self?.permissionGuide.show()
+      }
       let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-      window.title = "Easy Kap Settings"
+      window.title = String(localized: "Easy Kap Settings")
       window.styleMask = [.titled, .closable]
       window.isReleasedWhenClosed = false
       window.center()
@@ -176,13 +193,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func present(_ error: any Error) {
     logger.error("\(String(describing: error), privacy: .public)")
-    // macOS shows its own Screen Recording prompt, so a second alert would only repeat it.
-    if case .screenRecordingDenied? = error as? RecorderError { return }
+    if case .screenRecordingDenied? = error as? RecorderError {
+      showScreenRecordingGuide()
+      return
+    }
     let alert = NSAlert(error: error)
     let settingsURL = (error as? RecorderError)?.settingsURL
     if settingsURL != nil {
-      alert.addButton(withTitle: "Open System Settings")
-      alert.addButton(withTitle: "Cancel")
+      alert.addButton(withTitle: String(localized: "Open System Settings"))
+      alert.addButton(withTitle: String(localized: "Cancel"))
     }
     NSApp.activate()
     if alert.runModal() == .alertFirstButtonReturn, let settingsURL {
@@ -195,18 +214,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func makeStatusMenu() -> NSMenu {
     let menu = NSMenu()
     if recorder.isRecording {
-      let pauseTitle = recorder.isPaused ? "Resume Recording" : "Pause Recording"
+      let pauseTitle = recorder.isPaused ? String(localized: "Resume Recording") : String(localized: "Pause Recording")
       menu.addItem(withTitle: pauseTitle, action: #selector(togglePause), keyEquivalent: "").target = self
-      menu.addItem(withTitle: "Stop Recording", action: #selector(stopRecordingFromMenu), keyEquivalent: "").target = self
+      let stopTitle = String(localized: "Stop Recording")
+      menu.addItem(withTitle: stopTitle, action: #selector(stopRecordingFromMenu), keyEquivalent: "").target = self
     } else {
-      menu.addItem(withTitle: "Start Recording…", action: #selector(startRecordingFromMenu), keyEquivalent: "").target = self
-      menu.addItem(withTitle: "Open Video…", action: #selector(openVideo), keyEquivalent: "").target = self
+      let startTitle = String(localized: "Start Recording…")
+      menu.addItem(withTitle: startTitle, action: #selector(startRecordingFromMenu), keyEquivalent: "").target = self
+      menu.addItem(withTitle: String(localized: "Open Video…"), action: #selector(openVideo), keyEquivalent: "").target = self
     }
     menu.addItem(.separator())
-    menu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
-    menu.addItem(withTitle: "Settings…", action: #selector(showPreferences), keyEquivalent: ",").target = self
+    menu.addItem(withTitle: String(localized: "Check for Updates…"), action: #selector(checkForUpdates), keyEquivalent: "").target = self
+    menu.addItem(withTitle: String(localized: "Settings…"), action: #selector(showPreferences), keyEquivalent: ",").target = self
     menu.addItem(.separator())
-    menu.addItem(withTitle: "Quit Easy Kap", action: #selector(NSApplication.terminate), keyEquivalent: "q")
+    menu.addItem(withTitle: String(localized: "Quit Easy Kap"), action: #selector(NSApplication.terminate), keyEquivalent: "q")
     return menu
   }
 
@@ -215,25 +236,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let main = NSMenu()
 
     let appMenu = NSMenu()
-    appMenu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
-    appMenu.addItem(withTitle: "Settings…", action: #selector(showPreferences), keyEquivalent: ",").target = self
-    appMenu.addItem(withTitle: "Quit Easy Kap", action: #selector(NSApplication.terminate), keyEquivalent: "q")
+    appMenu.addItem(withTitle: String(localized: "Check for Updates…"), action: #selector(checkForUpdates), keyEquivalent: "").target = self
+    appMenu.addItem(withTitle: String(localized: "Settings…"), action: #selector(showPreferences), keyEquivalent: ",").target = self
+    appMenu.addItem(withTitle: String(localized: "Quit Easy Kap"), action: #selector(NSApplication.terminate), keyEquivalent: "q")
     main.addItem(withTitle: "Easy Kap", action: nil, keyEquivalent: "").submenu = appMenu
 
-    let fileMenu = NSMenu(title: "File")
-    fileMenu.addItem(withTitle: "Open Video…", action: #selector(openVideo), keyEquivalent: "o").target = self
-    fileMenu.addItem(withTitle: "Close", action: #selector(NSWindow.performClose), keyEquivalent: "w")
-    main.addItem(withTitle: "File", action: nil, keyEquivalent: "").submenu = fileMenu
+    let fileMenu = NSMenu(title: String(localized: "File"))
+    fileMenu.addItem(withTitle: String(localized: "Open Video…"), action: #selector(openVideo), keyEquivalent: "o").target = self
+    fileMenu.addItem(withTitle: String(localized: "Close"), action: #selector(NSWindow.performClose), keyEquivalent: "w")
+    main.addItem(withTitle: String(localized: "File"), action: nil, keyEquivalent: "").submenu = fileMenu
 
-    let editMenu = NSMenu(title: "Edit")
-    editMenu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
-    editMenu.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+    let editMenu = NSMenu(title: String(localized: "Edit"))
+    editMenu.addItem(withTitle: String(localized: "Undo"), action: Selector(("undo:")), keyEquivalent: "z")
+    editMenu.addItem(withTitle: String(localized: "Redo"), action: Selector(("redo:")), keyEquivalent: "Z")
     editMenu.addItem(.separator())
-    editMenu.addItem(withTitle: "Cut", action: #selector(NSText.cut), keyEquivalent: "x")
-    editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy), keyEquivalent: "c")
-    editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste), keyEquivalent: "v")
-    editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll), keyEquivalent: "a")
-    main.addItem(withTitle: "Edit", action: nil, keyEquivalent: "").submenu = editMenu
+    editMenu.addItem(withTitle: String(localized: "Cut"), action: #selector(NSText.cut), keyEquivalent: "x")
+    editMenu.addItem(withTitle: String(localized: "Copy"), action: #selector(NSText.copy), keyEquivalent: "c")
+    editMenu.addItem(withTitle: String(localized: "Paste"), action: #selector(NSText.paste), keyEquivalent: "v")
+    editMenu.addItem(withTitle: String(localized: "Select All"), action: #selector(NSText.selectAll), keyEquivalent: "a")
+    main.addItem(withTitle: String(localized: "Edit"), action: nil, keyEquivalent: "").submenu = editMenu
 
     return main
   }

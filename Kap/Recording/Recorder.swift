@@ -9,16 +9,17 @@ nonisolated enum RecorderError: LocalizedError {
 
   var errorDescription: String? {
     switch self {
-    case .screenRecordingDenied: "Easy Kap needs permission to record your screen."
-    case .microphoneDenied: "Easy Kap needs permission to use the microphone."
-    case .displayNotFound: "The selected display is no longer available."
-    case .notRecording: "No recording is in progress."
+    case .screenRecordingDenied: String(localized: "Easy Kap needs permission to record your screen.")
+    case .microphoneDenied: String(localized: "Easy Kap needs permission to use the microphone.")
+    case .displayNotFound: String(localized: "The selected display is no longer available.")
+    case .notRecording: String(localized: "No recording is in progress.")
     }
   }
 
   var recoverySuggestion: String? {
     switch self {
-    case .microphoneDenied: "Allow Easy Kap in System Settings → Privacy & Security → Microphone, or turn off microphone recording."
+    case .microphoneDenied:
+      String(localized: "Allow Easy Kap in System Settings → Privacy & Security → Microphone, or turn off microphone recording.")
     case .screenRecordingDenied, .displayNotFound, .notRecording: nil
     }
   }
@@ -84,8 +85,8 @@ final class Recorder {
       throw RecorderError.microphoneDenied
     }
 
-    // Shows the system prompt the first time; afterwards the user has to allow it in System Settings.
-    guard CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() else {
+    // Checked without macOS's own prompt: Easy Kap guides the user to System Settings instead.
+    guard ScreenRecordingPermission.isGranted else {
       throw RecorderError.screenRecordingDenied
     }
 

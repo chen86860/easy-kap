@@ -1,0 +1,33 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "shouldTranslate": false
+    },
+    "CFBundleName": {
+      "shouldTranslate": false
+    },
+    "NSHumanReadableCopyright": {
+      "shouldTranslate": false
+    },
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy - Microphone Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Easy Kap records your microphone when audio recording is enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启音频录制时，Easy Kap 会录制你的麦克风。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

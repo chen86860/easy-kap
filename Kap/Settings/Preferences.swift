@@ -1,6 +1,15 @@
 import AppKit
 import Observation
 
+/// The language Easy Kap shows. `system` follows the order of languages in System Settings.
+enum AppLanguage: String, CaseIterable, Identifiable {
+  case system
+  case english = "en"
+  case simplifiedChinese = "zh-Hans"
+
+  var id: Self { self }
+}
+
 @Observable
 final class Preferences {
   static let shared = Preferences(defaults: .standard)
@@ -39,6 +48,19 @@ final class Preferences {
   var lastSelection: SavedSelection? {
     didSet { defaults.set(lastSelection.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.lastSelection) }
   }
+  /// Applied through the app's own `AppleLanguages`, which macOS reads at launch, so a change needs a relaunch.
+  var language: AppLanguage {
+    didSet {
+      defaults.set(language.rawValue, forKey: Key.language)
+      if language == .system {
+        defaults.removeObject(forKey: Key.appleLanguages)
+      } else {
+        defaults.set([language.rawValue], forKey: Key.appleLanguages)
+      }
+    }
+  }
+  /// The language this launch shows, to tell whether a change still waits for a relaunch.
+  @ObservationIgnored let launchLanguage: AppLanguage
   var shortcut: Shortcut? {
     didSet {
       defaults.set(shortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.shortcut)
@@ -70,6 +92,9 @@ final class Preferences {
     loopExports = defaults.bool(forKey: Key.loopExports)
     lastExportFormat = defaults.string(forKey: Key.lastExportFormat).flatMap(ExportFormat.init(rawValue:)) ?? .gif
     lastSelection = defaults.data(forKey: Key.lastSelection).flatMap { try? JSONDecoder().decode(SavedSelection.self, from: $0) }
+    let language = defaults.string(forKey: Key.language).flatMap(AppLanguage.init(rawValue:)) ?? .system
+    self.language = language
+    launchLanguage = language
     shortcut = defaults.data(forKey: Key.shortcut).flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
   }
 
@@ -85,5 +110,7 @@ final class Preferences {
     static let lastExportFormat = "lastExportFormat"
     static let lastSelection = "lastSelection"
     static let shortcut = "shortcut"
+    static let language = "language"
+    static let appleLanguages = "AppleLanguages"
   }
 }

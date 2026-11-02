@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     macOS: "15.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -21,6 +22,9 @@ settings:
     ENABLE_HARDENED_RUNTIME: NO
     DEAD_CODE_STRIPPING: YES
     ENABLE_USER_SCRIPT_SANDBOXING: YES
+    # Collects the app's strings into the string catalogs in Kap/Resources.
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle

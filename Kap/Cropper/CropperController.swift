@@ -48,17 +48,14 @@ final class CropperController {
     model.loadWindows()
   }
 
-  /// Keeps only a non-interactive outline around the recorded area. Kap's windows are excluded from the capture.
+  /// Keeps the dimming around the recorded area on every display, so viewers see what is being recorded, but lets
+  /// clicks through to the apps below. Easy Kap's windows are excluded from the capture.
   func enterRecordingMode() {
     model.isRecording = true
+    model.openMenu = nil
+    model.hoveredControl = nil
     removeKeyMonitor()
-    for (displayID, panel) in panels {
-      if displayID == model.displayID {
-        panel.ignoresMouseEvents = true
-      } else {
-        panel.orderOut(nil)
-      }
-    }
+    panels.values.forEach { $0.ignoresMouseEvents = true }
   }
 
   func close() {

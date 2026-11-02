@@ -18,7 +18,7 @@ struct CropperView: View {
   var body: some View {
     ZStack(alignment: .topLeading) {
       DimmingShape(hole: selection)
-        .fill(.black.opacity(model.isRecording ? 0 : 0.4), style: FillStyle(eoFill: true))
+        .fill(.black.opacity(0.4), style: FillStyle(eoFill: true))
         .contentShape(Rectangle())
         .gesture(createGesture)
         .simultaneousGesture(TapGesture().onEnded { model.openMenu = nil })

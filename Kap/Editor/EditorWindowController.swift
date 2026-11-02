@@ -120,10 +120,10 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
   func windowShouldClose(_ sender: NSWindow) -> Bool {
     guard needsDiscardConfirmation else { return true }
     let alert = NSAlert()
-    alert.messageText = "Are you sure that you want to discard this recording?"
-    alert.informativeText = "You will no longer be able to edit and export the original recording."
-    alert.addButton(withTitle: "Discard")
-    alert.addButton(withTitle: "Cancel")
+    alert.messageText = String(localized: "Are you sure that you want to discard this recording?")
+    alert.informativeText = String(localized: "You will no longer be able to edit and export the original recording.")
+    alert.addButton(withTitle: String(localized: "Discard"))
+    alert.addButton(withTitle: String(localized: "Cancel"))
     alert.beginSheetModal(for: sender) { [weak self] response in
       guard let self, response == .alertFirstButtonReturn else { return }
       self.isDiscardConfirmed = true

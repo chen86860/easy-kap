@@ -19,8 +19,8 @@ final class EditorModel {
 
     var title: String {
       switch self {
-      case .saveToDisk: "Save to Disk"
-      case .copyToClipboard: "Copy to Clipboard"
+      case .saveToDisk: String(localized: "Save to Disk")
+      case .copyToClipboard: String(localized: "Copy to Clipboard")
       case .openWith(let application): OpenWithApplications.name(of: application)
       }
     }
@@ -241,11 +241,11 @@ final class EditorModel {
     case .copyToClipboard:
       NSPasteboard.general.clearContents()
       NSPasteboard.general.writeObjects([file as NSURL])
-      return "Copied to Clipboard"
+      return String(localized: "Copied to Clipboard")
     case .openWith(let application):
       do {
         try await NSWorkspace.shared.open([file], withApplicationAt: application, configuration: NSWorkspace.OpenConfiguration())
-        return "Opened in \(OpenWithApplications.name(of: application))"
+        return String(localized: "Opened in \(OpenWithApplications.name(of: application))")
       } catch {
         return error.localizedDescription
       }

@@ -19,7 +19,7 @@ struct DestinationMenu: View {
       Menu("Open With…") {
         let applications = OpenWithApplications.list(for: contentType)
         if let defaultApplication = applications.defaultApplication {
-          item(defaultApplication, title: "\(OpenWithApplications.name(of: defaultApplication)) (default)")
+          item(defaultApplication, title: String(localized: "\(OpenWithApplications.name(of: defaultApplication)) (default)"))
           Divider()
         }
         ForEach(applications.others, id: \.self) { application in

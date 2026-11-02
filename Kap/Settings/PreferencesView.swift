@@ -6,13 +6,35 @@ struct PreferencesView: View {
   @Bindable var preferences: Preferences
   /// `nil` in previews and tests, where no updater runs.
   let updater: SPUUpdater?
+  /// Opens System Settings with the drag guide beside it.
+  let onGrantScreenRecording: () -> Void
   @State private var microphones: [AVCaptureDevice] = []
   @State private var checksForUpdates = false
+  @State private var canRecordScreen = ScreenRecordingPermission.isGranted
 
   var body: some View {
     Form {
       Section {
         AboutHeader()
+      }
+
+      Section {
+        LabeledContent {
+          if canRecordScreen {
+            Label("Allowed", systemImage: "checkmark.circle.fill")
+              .foregroundStyle(.green)
+          } else {
+            Button("Allow…", action: onGrantScreenRecording)
+              .buttonStyle(.borderedProminent)
+          }
+        } label: {
+          Text("Screen Recording")
+          if !canRecordScreen {
+            Text("Easy Kap needs this permission to record your screen.")
+          }
+        }
+      } header: {
+        Text("Permissions")
       }
 
       Section("General") {
@@ -27,6 +49,17 @@ struct PreferencesView: View {
         }
         LabeledContent("Start recording shortcut") {
           ShortcutRecorder(shortcut: $preferences.shortcut)
+        }
+        Picker("Language", selection: $preferences.language) {
+          Text("Follow System").tag(AppLanguage.system)
+          Text(verbatim: "English").tag(AppLanguage.english)
+          Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
+        }
+        if preferences.language != preferences.launchLanguage {
+          LabeledContent("Restart Easy Kap to use the new language.") {
+            Button("Restart Now", action: AppInfo.relaunch)
+          }
+          .foregroundStyle(.secondary)
         }
       }
 
@@ -71,6 +104,13 @@ struct PreferencesView: View {
       microphones = Microphones.all
       checksForUpdates = updater?.automaticallyChecksForUpdates ?? false
     }
+    .task {
+      // Access granted in System Settings applies right away, so the status follows it while Settings is open.
+      while !Task.isCancelled {
+        canRecordScreen = ScreenRecordingPermission.isGranted
+        try? await Task.sleep(for: .seconds(1))
+      }
+    }
   }
 
   private func chooseDirectory() {
@@ -79,7 +119,7 @@ struct PreferencesView: View {
     panel.canChooseDirectories = true
     panel.canCreateDirectories = true
     panel.directoryURL = preferences.kapturesDirectory
-    panel.prompt = "Choose"
+    panel.prompt = String(localized: "Choose")
     if panel.runModal() == .OK, let url = panel.url {
       preferences.kapturesDirectory = url
     }
@@ -93,6 +133,16 @@ enum AppInfo {
   static let changelog = URL(string: "https://github.com/chen86860/easy-kap/blob/main/CHANGELOG.md")!
   static let issues = URL(string: "https://github.com/chen86860/easy-kap/issues")!
   static let kap = URL(string: "https://github.com/wulkano/Kap")!
+
+  /// Quits and opens Easy Kap again, once this instance has exited, so only one copy ever runs.
+  static func relaunch() {
+    let process = Process()
+    process.executableURL = URL(filePath: "/bin/sh")
+    process.arguments = ["-c", "while /bin/kill -0 \"$1\" 2>/dev/null; do sleep 0.1; done; /usr/bin/open \"$2\"", "relaunch",
+                         String(ProcessInfo.processInfo.processIdentifier), Bundle.main.bundlePath]
+    try? process.run()
+    NSApp.terminate(nil)
+  }
 }
 
 /// The app icon, name, version and project links at the top of Settings.
@@ -159,8 +209,8 @@ struct ShortcutRecorder: View {
   }
 
   private var label: String {
-    if isRecording { return "Type shortcut…" }
-    return shortcut?.displayString ?? "Record Shortcut"
+    if isRecording { return String(localized: "Type shortcut…") }
+    return shortcut?.displayString ?? String(localized: "Record Shortcut")
   }
 
   private func toggleRecording() {

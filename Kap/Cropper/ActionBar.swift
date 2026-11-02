@@ -19,7 +19,7 @@ struct ActionBar: View {
       Button {
         toggle(.ratio)
       } label: {
-        Label(model.ratio?.title ?? "Free", systemImage: model.ratio == nil ? "lock.open" : "lock")
+        Label(model.ratio?.title ?? String(localized: "Free"), systemImage: model.ratio == nil ? "lock.open" : "lock")
           .labelStyle(.titleAndIcon)
       }
       .control(.ratio, model: model)
@@ -100,7 +100,7 @@ struct ActionBarMenuPanel: View {
 
   private var ratioMenu: some View {
     VStack(alignment: .leading, spacing: 2) {
-      DropdownRow(title: "Free", isSelected: model.ratio == nil) { choose { model.setRatio(nil) } }
+      DropdownRow(title: String(localized: "Free"), isSelected: model.ratio == nil) { choose { model.setRatio(nil) } }
       Divider().padding(.vertical, 3)
       ForEach(AspectRatio.presets, id: \.self) { ratio in
         DropdownRow(title: ratio.title, isSelected: model.ratio == ratio) { choose { model.setRatio(ratio) } }
@@ -138,7 +138,7 @@ struct ActionBarMenuPanel: View {
           }
           if app.windows.count > 1 {
             ForEach(app.windows) { window in
-              DropdownRow(title: window.title.isEmpty ? "Untitled Window" : window.title, indent: true) {
+              DropdownRow(title: window.title.isEmpty ? String(localized: "Untitled Window") : window.title, indent: true) {
                 choose { model.select(window) }
               }
             }

@@ -160,7 +160,8 @@ struct EditorView: View {
         Picker("Scale", selection: Binding(get: { model.scalePercent }, set: { model.setScale($0) })) {
           ForEach(EditorModel.scalePresets, id: \.self) { percent in
             let size = model.scaledSize(percent)
-            Text(verbatim: "\(size.width) x \(size.height) (\(percent == 100 ? "Original" : "\(percent)%"))").tag(percent)
+            let label = percent == 100 ? String(localized: "Original") : "\(percent)%"
+            Text(verbatim: "\(size.width) x \(size.height) (\(label))").tag(percent)
           }
         }
         .pickerStyle(.inline)

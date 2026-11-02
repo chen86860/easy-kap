@@ -6,8 +6,8 @@ nonisolated enum SegmentMergerError: LocalizedError {
 
   var errorDescription: String? {
     switch self {
-    case .emptyRecording: "Nothing was recorded."
-    case .cannotCreateExportSession: "The recording could not be saved."
+    case .emptyRecording: String(localized: "Nothing was recorded.")
+    case .cannotCreateExportSession: String(localized: "The recording could not be saved.")
     }
   }
 }
