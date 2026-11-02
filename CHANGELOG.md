@@ -6,6 +6,22 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-11-02
+
+### Added
+
+- Simplified Chinese. Easy Kap follows your Mac's language, and Settings has a Language menu to switch between English and 简体中文.
+- Settings shows whether Easy Kap may record your screen. Without that permission, Easy Kap opens Settings at launch. **Allow…** opens System Settings at Screen & System Audio Recording, with a panel beside it holding Easy Kap's icon: drag it into the list to allow recording. The panel closes by itself once access is granted.
+
+### Fixed
+
+- Converting a recording to GIF or APNG no longer fails with "Cannot Decode". Recordings skip frames while the screen is still, and the converter couldn't handle the gaps.
+
+### Changed
+
+- The editor exports MP4 by default, and the format menu lists MP4 before GIF. Your last chosen format is still remembered.
+- While recording, the screen stays dimmed outside the recorded area, so viewers can see what is being recorded. Clicks still reach the apps below, and the dimming is not part of the recording.
+
 ## [0.1.5] - 2026-10-24
 
 ### Added
@@ -68,7 +84,8 @@ The first public release of Easy Kap, a native rewrite of Kap.
 
 Tagged but never released: the build crashed the Swift 6.3 compiler in Xcode 26.6. Version 0.1.1 contains the fix.
 
-[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/chen86860/easy-kap/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.5
 [0.1.4]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.4
 [0.1.3]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.3
