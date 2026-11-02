@@ -17,7 +17,7 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import { cn } from "cn";
 import { motion } from "motion/react";
-import type { PointerEvent, ReactNode } from "react";
+import type { CSSProperties, PointerEvent, ReactNode } from "react";
 
 import { AreaPickerDemo } from "@/components/area-picker-demo";
 import { CopyCommand } from "@/components/copy-command";
@@ -65,6 +65,11 @@ function followPointer(event: PointerEvent<HTMLElement>) {
   const bounds = event.currentTarget.getBoundingClientRect();
   event.currentTarget.style.setProperty("--x", `${event.clientX - bounds.left}px`);
   event.currentTarget.style.setProperty("--y", `${event.clientY - bounds.top}px`);
+}
+
+/** Places an item at `index` of `count` along the Kap ring, from violet to teal; read by the `tone` utility. */
+function ringStop(index: number, count: number) {
+  return { "--p": `${Math.round((index / Math.max(count - 1, 1)) * 100)}%` } as CSSProperties;
 }
 
 function DotField() {
@@ -190,12 +195,15 @@ function Home() {
             <ul className="grid gap-6">
               {[keys.slice(0, 3), keys.slice(3)].map((row, rowIndex) => (
                 <li key={rowIndex} className={cn("grid gap-6 sm:grid-cols-3", rowIndex === 0 ? "lg:pr-16" : "lg:pl-16")}>
-                  {row.map(({ icon: Icon, title, text }) => (
+                  {row.map(({ icon: Icon, title, text }, index) => (
                     <article
                       key={title}
-                      className="keycap ease-out-quint grid content-between gap-6 rounded-xl p-8 transition-transform duration-500 hover:-translate-y-1 sm:min-h-48"
+                      style={ringStop(rowIndex * 3 + index, keys.length)}
+                      className="keycap tone ease-out-quint grid content-between gap-6 rounded-xl p-8 transition-transform duration-500 hover:-translate-y-1 sm:min-h-48"
                     >
-                      <Icon className="text-muted-foreground size-7" aria-hidden="true" />
+                      <span className="grid size-12 place-items-center rounded-xl bg-(--tone-wash) text-(--tone-deep) shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--tone)_18%,transparent)]">
+                        <Icon className="size-6" weight="duotone" aria-hidden="true" />
+                      </span>
                       <p className="text-muted-foreground text-lg">
                         <b className="text-foreground font-medium">{title}</b> {text}
                       </p>
@@ -296,10 +304,14 @@ function Home() {
             lede="VideoToolbox for video, ImageIO for animated images. Both already ship with macOS."
           >
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {formats.map((format) => (
-                <article key={format.name} className="keycap grid content-start gap-3 rounded-xl p-8">
+              {formats.map((format, index) => (
+                <article
+                  key={format.name}
+                  style={ringStop(index, formats.length)}
+                  className="keycap tone grid content-start gap-3 rounded-xl bg-[linear-gradient(to_bottom,var(--tone-wash),var(--surface)_75%)] p-8"
+                >
                   <span className="text-muted-foreground font-mono text-xs">{format.engine}</span>
-                  <b className="text-3xl font-semibold tracking-tight">{format.name}</b>
+                  <b className="text-4xl font-semibold tracking-tight text-(--tone-deep)">{format.name}</b>
                   <p className="text-muted-foreground">{format.summary}</p>
                 </article>
               ))}
@@ -375,8 +387,10 @@ function Home() {
                 "Allow Screen Recording when macOS asks, then reopen Easy Kap.",
               ].map((step, index) => (
                 // Static copy: the order is the identity.
-                <li key={index} className="keycap grid content-start gap-8 rounded-xl p-8">
-                  <Key className="size-8 justify-center px-0 font-mono text-xs">{index + 1}</Key>
+                <li key={index} style={ringStop(index, 4)} className="keycap tone grid content-start gap-8 rounded-xl p-8">
+                  <span className="grid size-8 place-items-center rounded-lg bg-(--tone-wash) font-mono text-xs font-semibold text-(--tone-deep) shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--tone)_22%,transparent)]">
+                    {index + 1}
+                  </span>
                   <p className="text-muted-foreground">{step}</p>
                 </li>
               ))}
@@ -391,7 +405,7 @@ function Home() {
                 ] as const
               ).map(([Icon, tip]) => (
                 <li key={tip} className="grid grid-cols-[20px_1fr] gap-3">
-                  <Icon className="text-foreground mt-0.5 size-5" aria-hidden="true" />
+                  <Icon className="mt-0.5 size-5 text-(--violet)" weight="duotone" aria-hidden="true" />
                   {tip}
                 </li>
               ))}

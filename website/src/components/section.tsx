@@ -75,7 +75,7 @@ export function Points({ items }: { items: ReactNode[] }) {
       {items.map((item, index) => (
         // Static copy: the order is the identity.
         <li key={index} className="grid grid-cols-[16px_1fr] gap-3">
-          <span aria-hidden="true" className="bg-accent mt-2 size-1.5 rounded-xs" />
+          <span aria-hidden="true" className="bg-kap-ring mt-2 size-1.5 rounded-xs" />
           <span>{item}</span>
         </li>
       ))}

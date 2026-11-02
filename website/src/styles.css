@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* A light desk: a soft gray ground, white raised surfaces with keycap edges, one teal accent taken from the Kap ring. */
+/* A light desk: a soft gray ground and white keycap surfaces, colored only by the Kap ring, violet into teal. */
 :root {
   --ground: #f4f4f5;
   --surface: #ffffff;
@@ -14,6 +14,8 @@
   --accent: #12d6be; /* Kap ring, teal end */
   --violet: #6458f5; /* Kap ring, violet start: the logo and hero light only */
   --rec: #ff453a; /* The record button, as in the app */
+  /* Shadows lean violet, so even the gray parts sit in the ring's light. */
+  --shade: 38 30 92;
 
   /* shadcn tokens, mapped onto the palette above. The page is deliberately light only. */
   --background: var(--ground);
@@ -84,9 +86,19 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Kap's ring: the logo is the only place it still appears. */
+/* Kap's ring, violet into teal: the one source of color on the page. */
 @utility bg-kap-ring {
   background-image: linear-gradient(135deg, var(--violet), var(--accent));
+}
+
+/*
+ * A stop on the ring, set by --p from 0% (violet) to 100% (teal), so a row of items walks along the gradient.
+ * --tone-deep stays at 4.5:1 or better on --tone-wash, so it works for small numerals as well as icons; --tone-wash is a surface tint.
+ */
+@utility tone {
+  --tone: color-mix(in oklch, var(--accent) var(--p, 0%), var(--violet));
+  --tone-deep: color-mix(in oklch, var(--tone) 55%, var(--ink));
+  --tone-wash: color-mix(in oklch, var(--tone) 13%, white);
 }
 
 /* The hero heading's text, lit from the left. */
@@ -96,21 +108,44 @@
   color: transparent;
 }
 
-/* A dotted desk, as if the page itself were under the cropper. */
+/* A dotted desk, as if the page itself were under the cropper, lit violet from one corner and teal from the other. */
 @utility bg-dots {
   background-color: var(--raised);
-  background-image: radial-gradient(circle at 1px 1px, rgb(24 24 27 / 0.12) 1px, transparent 0);
-  background-size: 16px 16px;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgb(var(--shade) / 0.16) 1px, transparent 0),
+    radial-gradient(70% 90% at 0% 0%, color-mix(in oklch, var(--violet) 12%, transparent), transparent),
+    radial-gradient(70% 90% at 100% 100%, color-mix(in oklch, var(--accent) 16%, transparent), transparent);
+  background-size:
+    16px 16px,
+    100% 100%,
+    100% 100%;
+}
+
+/* A desktop wallpaper in the ring's colors, under the area picker demo. */
+@utility bg-wallpaper {
+  background-color: oklch(0.86 0.06 255);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.35) 1px, transparent 0),
+    radial-gradient(60% 80% at 8% 0%, oklch(0.62 0.2 282), transparent 70%),
+    radial-gradient(55% 70% at 100% 100%, oklch(0.84 0.13 178), transparent 70%),
+    radial-gradient(50% 60% at 75% 10%, oklch(0.78 0.11 230), transparent 75%),
+    radial-gradient(60% 60% at 20% 100%, oklch(0.74 0.12 250), transparent 80%);
+  background-size:
+    16px 16px,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%;
 }
 
 /* A white keycap: a hairline edge, a lit top and a shadow that grounds it, lit from above like the rest of the page. */
 @utility keycap {
   background-color: var(--surface);
   box-shadow:
-    0 0 0 1px rgb(24 24 27 / 0.08),
-    0 1px 2px rgb(24 24 27 / 0.06),
-    0 4px 12px -4px rgb(24 24 27 / 0.08),
-    inset 0 -2px 0 rgb(24 24 27 / 0.04),
+    0 0 0 1px rgb(var(--shade) / 0.09),
+    0 1px 2px rgb(var(--shade) / 0.07),
+    0 6px 16px -6px rgb(var(--shade) / 0.14),
+    inset 0 -2px 0 rgb(var(--shade) / 0.05),
     inset 0 1px 0 #ffffff;
 }
 
@@ -121,29 +156,38 @@
   box-shadow:
     0 0 0 1px var(--ink),
     0 2px 4px rgb(24 24 27 / 0.2),
-    0 8px 20px -8px rgb(24 24 27 / 0.45),
+    0 10px 24px -10px color-mix(in oklch, var(--violet) 70%, transparent),
     inset 0 1px 0 rgb(255 255 255 / 0.18),
     inset 0 -1px 0 rgb(0 0 0 / 0.4);
 }
 
-/* A field of dots behind the hero, like the grid under the cropper. The teal layer shows only around --x and --y, which follow the pointer. */
-.dot-field,
-.dot-field::after {
-  background-image: radial-gradient(circle at 2px 2px, var(--dot) var(--dot-size), transparent 0);
-  background-size: 20px 20px;
-}
+/*
+ * A field of dots behind the hero, like the grid under the cropper, colored along the ring from violet to teal over
+ * a soft wash of the same two colors. The larger teal dots show only around --x and --y, which follow the pointer.
+ */
 .dot-field {
-  --dot: rgb(24 24 27 / 0.16);
-  --dot-size: 1px;
-  mask-image: radial-gradient(60% 70% at 50% 40%, #000 40%, transparent 100%);
+  background:
+    radial-gradient(45% 65% at 20% 35%, color-mix(in oklch, var(--violet) 30%, transparent), transparent),
+    radial-gradient(45% 65% at 80% 45%, color-mix(in oklch, var(--accent) 32%, transparent), transparent);
+  /* Fades to nothing at every edge, so the field never shows the section's box. */
+  mask-image: radial-gradient(closest-side at 50% 45%, #000 35%, transparent 100%);
 }
+.dot-field::before,
 .dot-field::after {
-  --dot: var(--accent);
-  --dot-size: 2px;
   content: "";
   position: absolute;
   inset: 0;
-  mask-image: radial-gradient(280px circle at var(--x, 50%) var(--y, 30%), #000 30%, transparent);
+  mask-image: radial-gradient(circle at 2px 2px, #000 var(--dot-size), transparent 0);
+  mask-size: 20px 20px;
+}
+.dot-field::before {
+  --dot-size: 1.25px;
+  background-image: linear-gradient(100deg, var(--violet), var(--accent));
+  opacity: 0.55;
+}
+.dot-field::after {
+  --dot-size: 2px;
+  background-image: radial-gradient(280px circle at var(--x, 50%) var(--y, 30%), var(--accent) 30%, transparent);
   transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -159,14 +203,22 @@
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
-  /* Fine film grain over everything, so the flat black has some texture. */
+  ::selection {
+    background-color: color-mix(in oklch, var(--violet) 22%, white);
+    color: var(--ink);
+  }
+  html {
+    caret-color: var(--violet);
+    scrollbar-color: color-mix(in oklch, var(--violet) 35%, var(--line-strong)) transparent;
+  }
+  /* Fine film grain over everything, so the color washes read as a printed surface rather than flat fills. */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
     z-index: var(--z-grain);
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.045;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   h1,

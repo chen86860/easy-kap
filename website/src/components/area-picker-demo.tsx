@@ -88,7 +88,7 @@ export function AreaPickerDemo() {
     <div>
       <div
         ref={deskRef}
-        className="bg-dots border-line-strong relative aspect-[4/5] max-w-full touch-none overflow-hidden rounded-3xl border shadow-[0_32px_64px_-32px_rgb(24_24_27/0.35)] select-none sm:aspect-[16/9.4]"
+        className="bg-wallpaper border-line-strong relative aspect-[4/5] max-w-full touch-none overflow-hidden rounded-3xl border shadow-[0_32px_64px_-32px_rgb(24_24_27/0.35)] select-none sm:aspect-[16/9.4]"
       >
         <div className="absolute inset-x-0 top-0 z-(--z-chrome) flex h-8 items-center justify-between bg-white/60 px-4 text-xs font-medium backdrop-blur-md">
           <div className="flex items-center gap-4">
