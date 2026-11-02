@@ -14,7 +14,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private let permissionGuide = PermissionGuide()
   private var statusItem: StatusItemController?
   private var editors: [EditorWindowController] = []
-  private var preferencesWindow: NSWindow?
+  private var settingsWindow: SettingsWindowController?
+  private lazy var onboarding = ScreenRecordingOnboarding(guide: permissionGuide) { [weak self] in
+    self?.cropper.open()
+  }
   /// Checks the release appcast for updates; created at launch, but not when the app hosts unit tests.
   private var updaterController: SPUStandardUpdaterController?
   private var isStartingRecording = false
@@ -49,7 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Without Screen Recording access nothing can be recorded, so the first launch starts in Settings, which shows
     // the permission and a button that guides the user through granting it.
-    if !ScreenRecordingPermission.isGranted { showPreferences() }
+    if !ScreenRecordingPermission.isGranted { showSettings(.general) }
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
@@ -72,7 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       if ScreenRecordingPermission.isGranted {
         cropper.open()
       } else {
-        showScreenRecordingGuide()
+        onboarding.show()
       }
     }
   }
@@ -165,26 +168,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     updaterController?.checkForUpdates(nil)
   }
 
-  /// Settings, which shows whether access is granted, plus System Settings with the drag guide beside it.
-  private func showScreenRecordingGuide() {
-    showPreferences()
-    permissionGuide.show()
+  @objc private func showPreferences() {
+    showSettings()
   }
 
-  @objc private func showPreferences() {
-    if preferencesWindow == nil {
-      let view = PreferencesView(preferences: preferences, updater: updaterController?.updater) { [weak self] in
+  private func showSettings(_ tab: SettingsWindowController.Tab? = nil) {
+    if settingsWindow == nil {
+      settingsWindow = SettingsWindowController(preferences: preferences, updater: updaterController?.updater) { [weak self] in
         self?.permissionGuide.show()
       }
-      let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-      window.title = String(localized: "Easy Kap Settings")
-      window.styleMask = [.titled, .closable]
-      window.isReleasedWhenClosed = false
-      window.center()
-      preferencesWindow = window
     }
-    NSApp.activate()
-    preferencesWindow?.makeKeyAndOrderFront(nil)
+    settingsWindow?.show(tab)
   }
 
   @objc private func startRecordingFromMenu() {
@@ -194,7 +188,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func present(_ error: any Error) {
     logger.error("\(String(describing: error), privacy: .public)")
     if case .screenRecordingDenied? = error as? RecorderError {
-      showScreenRecordingGuide()
+      onboarding.show()
       return
     }
     let alert = NSAlert(error: error)

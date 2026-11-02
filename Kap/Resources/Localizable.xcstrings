@@ -33,12 +33,32 @@
     "%lld%%": {
       "shouldTranslate": false
     },
+    "About": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于"
+          }
+        }
+      }
+    },
     "Allow Easy Kap in System Settings → Privacy & Security → Microphone, or turn off microphone recording.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "请在“系统设置”→“隐私与安全性”→“麦克风”中允许 Easy Kap，或关闭麦克风录制。"
+          }
+        }
+      }
+    },
+    "Allow Easy Kap to Record Your Screen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许 Easy Kap 录制屏幕"
           }
         }
       }
@@ -203,6 +223,16 @@
         }
       }
     },
+    "Come back here and start recording.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到这里，开始录制。"
+          }
+        }
+      }
+    },
     "Conversion Failed": {
       "localizations": {
         "zh-Hans": {
@@ -313,6 +343,16 @@
         }
       }
     },
+    "Drag Easy Kap into the list, or switch it on if it's already there.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把 Easy Kap 拖进列表；如果已在列表中，打开它的开关。"
+          }
+        }
+      }
+    },
     "Easy Kap": {
       "shouldTranslate": false
     },
@@ -326,12 +366,12 @@
         }
       }
     },
-    "Easy Kap Settings": {
+    "Easy Kap Can Record Your Screen": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Easy Kap 设置"
+            "value": "Easy Kap 已可以录制屏幕"
           }
         }
       }
@@ -469,6 +509,16 @@
         }
       }
     },
+    "If System Settings offers to quit and reopen Easy Kap, choose Quit & Reopen.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果系统设置提示退出并重新打开 Easy Kap，请选择“退出并重新打开”。"
+          }
+        }
+      }
+    },
     "Inspired by [Kap](%@) · MIT License": {
       "localizations": {
         "zh-Hans": {
@@ -485,6 +535,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "语言"
+          }
+        }
+      }
+    },
+    "Later": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稍后"
           }
         }
       }
@@ -559,12 +619,32 @@
         }
       }
     },
+    "Open Screen & System Audio Recording in System Settings.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在系统设置中打开“屏幕与系统录音”。"
+          }
+        }
+      }
+    },
     "Open System Settings": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "打开系统设置"
+          }
+        }
+      }
+    },
+    "Open System Settings Again": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次打开系统设置"
           }
         }
       }
@@ -759,6 +839,16 @@
         }
       }
     },
+    "Recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制"
+          }
+        }
+      }
+    },
     "Redo": {
       "localizations": {
         "zh-Hans": {
@@ -915,6 +1005,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "尺寸"
+          }
+        }
+      }
+    },
+    "Start Recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录制"
           }
         }
       }
@@ -1145,6 +1245,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "之后将无法再编辑和导出原始录制。"
+          }
+        }
+      }
+    },
+    "You're all set. Choose an area and start recording.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一切就绪，选择区域即可开始录制。"
+          }
+        }
+      }
+    },
+    "macOS asks you to allow this once. Easy Kap only records the area you choose.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS 需要你手动允许一次。Easy Kap 只会录制你选定的区域。"
           }
         }
       }

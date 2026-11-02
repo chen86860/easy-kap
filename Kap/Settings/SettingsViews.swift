@@ -2,22 +2,15 @@ import AVFoundation
 import Sparkle
 import SwiftUI
 
-struct PreferencesView: View {
+/// Permissions, where recordings go, the shortcut, the language, and export options.
+struct GeneralSettingsView: View {
   @Bindable var preferences: Preferences
-  /// `nil` in previews and tests, where no updater runs.
-  let updater: SPUUpdater?
   /// Opens System Settings with the drag guide beside it.
   let onGrantScreenRecording: () -> Void
-  @State private var microphones: [AVCaptureDevice] = []
-  @State private var checksForUpdates = false
   @State private var canRecordScreen = ScreenRecordingPermission.isGranted
 
   var body: some View {
     Form {
-      Section {
-        AboutHeader()
-      }
-
       Section {
         LabeledContent {
           if canRecordScreen {
@@ -63,47 +56,11 @@ struct PreferencesView: View {
         }
       }
 
-      Section("Video") {
-        Toggle("Show cursor", isOn: $preferences.showCursor)
-        Toggle("Highlight clicks", isOn: $preferences.highlightClicks)
-          .disabled(!preferences.showCursor)
-        Toggle("Record at 60 FPS", isOn: $preferences.record60fps)
-      }
-
-      Section("Audio") {
-        Toggle("Record system audio", isOn: $preferences.recordSystemAudio)
-        Toggle("Record microphone", isOn: $preferences.recordAudio)
-        if preferences.recordAudio {
-          Picker("Microphone", selection: $preferences.audioDeviceID) {
-            Text("System Default").tag(String?.none)
-            ForEach(microphones, id: \.uniqueID) { device in
-              Text(device.localizedName).tag(Optional(device.uniqueID))
-            }
-          }
-        }
-      }
-
       Section("Export") {
         Toggle("Loop GIF and APNG exports", isOn: $preferences.loopExports)
       }
-
-      if let updater {
-        Section("Updates") {
-          Toggle("Check for updates automatically", isOn: $checksForUpdates)
-            .onChange(of: checksForUpdates) { updater.automaticallyChecksForUpdates = checksForUpdates }
-          LabeledContent("Easy Kap \(AppInfo.version)") {
-            Button("Check Now") { updater.checkForUpdates() }
-          }
-        }
-      }
     }
-    .formStyle(.grouped)
-    .frame(width: 500)
-    .fixedSize(horizontal: false, vertical: true)
-    .task {
-      microphones = Microphones.all
-      checksForUpdates = updater?.automaticallyChecksForUpdates ?? false
-    }
+    .settingsPane()
     .task {
       // Access granted in System Settings applies right away, so the status follows it while Settings is open.
       while !Task.isCancelled {
@@ -123,6 +80,75 @@ struct PreferencesView: View {
     if panel.runModal() == .OK, let url = panel.url {
       preferences.kapturesDirectory = url
     }
+  }
+}
+
+/// What a recording captures: video and audio.
+struct RecordingSettingsView: View {
+  @Bindable var preferences: Preferences
+  @State private var microphones: [AVCaptureDevice] = []
+
+  var body: some View {
+    Form {
+      Section("Video") {
+        Toggle("Show cursor", isOn: $preferences.showCursor)
+        Toggle("Highlight clicks", isOn: $preferences.highlightClicks)
+          .disabled(!preferences.showCursor)
+        Toggle("Record at 60 FPS", isOn: $preferences.record60fps)
+      }
+
+      Section("Audio") {
+        Toggle("Record system audio", isOn: $preferences.recordSystemAudio)
+        Toggle("Record microphone", isOn: $preferences.recordAudio)
+        if preferences.recordAudio {
+          Picker("Microphone", selection: $preferences.audioDeviceID) {
+            Text("System Default").tag(String?.none)
+            ForEach(microphones, id: \.uniqueID) { device in
+              Text(device.localizedName).tag(Optional(device.uniqueID))
+            }
+          }
+        }
+      }
+    }
+    .settingsPane()
+    .task { microphones = Microphones.all }
+  }
+}
+
+/// The app's icon, version and links, and update options.
+struct AboutSettingsView: View {
+  /// `nil` in previews and tests, where no updater runs.
+  let updater: SPUUpdater?
+  @State private var checksForUpdates = false
+
+  var body: some View {
+    Form {
+      Section {
+        AboutHeader()
+      }
+
+      if let updater {
+        Section("Updates") {
+          Toggle("Check for updates automatically", isOn: $checksForUpdates)
+            .onChange(of: checksForUpdates) { updater.automaticallyChecksForUpdates = checksForUpdates }
+          LabeledContent("Easy Kap \(AppInfo.version)") {
+            Button("Check Now") { updater.checkForUpdates() }
+          }
+        }
+      }
+    }
+    .settingsPane()
+    .task { checksForUpdates = updater?.automaticallyChecksForUpdates ?? false }
+  }
+}
+
+private extension View {
+  /// Every tab has the same width and is as tall as its content, so the window fits each tab without scrolling.
+  func settingsPane() -> some View {
+    formStyle(.grouped)
+      .scrollDisabled(true)
+      .frame(width: 500)
+      .fixedSize(horizontal: false, vertical: true)
   }
 }
 

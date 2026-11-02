@@ -6,6 +6,11 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+### Changed
+
+- Settings is split into General, Recording and About tabs, so it fits on small screens.
+- Recording without Screen Recording permission first opens a short guide that explains the steps, instead of jumping straight to System Settings. Once access is granted, the guide offers to start recording.
+
 ## [0.1.6] - 2026-11-02
 
 ### Added
