@@ -14,7 +14,9 @@ final class SettingsWindowController {
 
   init(preferences: Preferences, updater: SPUUpdater?, onGrantScreenRecording: @escaping () -> Void) {
     tabs.tabStyle = .toolbar
-    tabs.transitionOptions = [.crossfade, .allowUserInteraction]
+    // No animated transition: it resized the window while each tab's SwiftUI host resized it too, so the height
+    // bounced and the new tab drew under the toolbar until it settled. The host's size alone sets the height.
+    tabs.transitionOptions = []
     tabs.addTabViewItem(Self.item(
       GeneralSettingsView(preferences: preferences, onGrantScreenRecording: onGrantScreenRecording),
       label: String(localized: "General"),
