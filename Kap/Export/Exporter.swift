@@ -10,9 +10,9 @@ nonisolated enum ExportError: LocalizedError {
 
   var errorDescription: String? {
     switch self {
-    case .noVideoTrack: "The recording has no video track."
-    case .cannotCreateExportSession: "The video encoder could not be started."
-    case .cannotCreateImageDestination, .cannotFinalizeImage: "The animated image could not be written."
+    case .noVideoTrack: String(localized: "The recording has no video track.")
+    case .cannotCreateExportSession: String(localized: "The video encoder could not be started.")
+    case .cannotCreateImageDestination, .cannotFinalizeImage: String(localized: "The animated image could not be written.")
     }
   }
 }
@@ -72,15 +72,10 @@ nonisolated enum Exporter {
       throw ExportError.cannotCreateExportSession
     }
     let renderSize = options.outputSize
-    let videoComposition = try await AVMutableVideoComposition.videoComposition(with: compositionSource) { request in
-      let source = request.sourceImage
-      let scale = CIFilter.lanczosScaleTransform()
-      scale.inputImage = source
-      scale.scale = Float(renderSize.height / source.extent.height)
-      scale.aspectRatio = Float((renderSize.width / source.extent.width) / (renderSize.height / source.extent.height))
-      let output = scale.outputImage?.cropped(to: CGRect(origin: .zero, size: renderSize)) ?? source
-      request.finish(with: output, context: nil)
-    }
+    let videoComposition = try await AVMutableVideoComposition.videoComposition(
+      with: compositionSource,
+      applyingCIFiltersWithHandler: scaling(to: renderSize)
+    )
     videoComposition.renderSize = renderSize
     videoComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(options.fps))
 
@@ -174,6 +169,11 @@ nonisolated enum Exporter {
     return url
   }
 
+  /// Decodes the trimmed range front to back and gives each output frame the source frame on screen at its time.
+  ///
+  /// Recordings have a variable frame rate, since ScreenCaptureKit only delivers a frame when the screen changes, so
+  /// several output frames often share one source frame. `AVAssetImageGenerator`'s batch requests fail with
+  /// "Cannot Decode" on such files, while reading the frames in order always works.
   @concurrent
   private static func exportAnimatedImage(
     asset: AVURLAsset,
@@ -181,14 +181,10 @@ nonisolated enum Exporter {
     options: ExportOptions,
     progress: @Sendable (Double) -> Void
   ) async throws {
-    let generator = AVAssetImageGenerator(asset: asset)
-    generator.appliesPreferredTrackTransform = true
-    generator.requestedTimeToleranceBefore = .zero
-    generator.requestedTimeToleranceAfter = .zero
-    generator.maximumSize = options.outputSize
-    defer { generator.cancelAllCGImageGeneration() }
-
-    let times = options.frameTimes.map { CMTime(seconds: $0, preferredTimescale: 600) }
+    guard let track = try await asset.loadTracks(withMediaType: .video).first else {
+      throw ExportError.noVideoTrack
+    }
+    let times = options.frameTimes
     guard let image = CGImageDestinationCreateWithURL(
       destination as CFURL,
       options.format.contentType.identifier as CFString,
@@ -201,15 +197,89 @@ nonisolated enum Exporter {
     let frameProperties = options.format.frameProperties(delay: 1 / Double(options.fps)) as CFDictionary
 
     var completed = 0
-    for await result in generator.images(for: times) {
-      try Task.checkCancellation()
-      CGImageDestinationAddImage(image, try result.image, frameProperties)
+    try await readFrames(of: asset, track: track, options: options) { frame in
+      CGImageDestinationAddImage(image, frame, frameProperties)
       completed += 1
       progress(Double(completed) / Double(times.count))
     }
-    try Task.checkCancellation()
     guard CGImageDestinationFinalize(image) else {
       throw ExportError.cannotFinalizeImage
+    }
+  }
+
+  /// Calls `add` once for each of `options.frameTimes`, with the source frame on screen at that time.
+  @concurrent
+  private static func readFrames(
+    of asset: AVURLAsset,
+    track: AVAssetTrack,
+    options: ExportOptions,
+    add: (CGImage) -> Void
+  ) async throws {
+    let times = options.frameTimes
+    let count = times.count
+    let renderSize = options.outputSize
+    let videoComposition = try await AVMutableVideoComposition.videoComposition(
+      with: AVURLAsset(url: asset.url),
+      applyingCIFiltersWithHandler: scaling(to: renderSize)
+    )
+    videoComposition.renderSize = renderSize
+    // Twice the export rate, so every source frame that lasts at least one output frame is read.
+    videoComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(options.fps * 2))
+
+    let reader = try AVAssetReader(asset: asset)
+    reader.timeRange = CMTimeRange(
+      start: CMTime(seconds: options.start, preferredTimescale: 600),
+      end: CMTime(seconds: options.end, preferredTimescale: 600)
+    )
+    let output = AVAssetReaderVideoCompositionOutput(videoTracks: [track], videoSettings: [
+      kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+    ])
+    output.videoComposition = videoComposition
+    reader.add(output)
+    guard reader.startReading() else { throw reader.error ?? ExportError.cannotCreateImageDestination }
+    defer { reader.cancelReading() }
+
+    let context = CIContext()
+    let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+    /// The frame on screen before the sample being read, rendered once however many output frames use it.
+    var previous: CGImage?
+    var added = 0
+    while added < count, let sample = output.copyNextSampleBuffer() {
+      try Task.checkCancellation()
+      guard let pixelBuffer = CMSampleBufferGetImageBuffer(sample),
+            let frame = context.createCGImage(
+              CIImage(cvPixelBuffer: pixelBuffer),
+              from: CGRect(origin: .zero, size: renderSize),
+              format: .RGBA8,
+              colorSpace: colorSpace
+            ) else { continue }
+      // Output times before this sample show the frame before it, or this one when it is the first.
+      let presentationTime = sample.presentationTimeStamp.seconds
+      while added < count, times[added] < presentationTime - 0.0005 {
+        add(previous ?? frame)
+        added += 1
+      }
+      previous = frame
+    }
+    if reader.status == .failed { throw reader.error ?? ExportError.cannotFinalizeImage }
+    try Task.checkCancellation()
+    guard let last = previous else { throw ExportError.noVideoTrack }
+    while added < count {
+      add(last)
+      added += 1
+    }
+  }
+
+  /// Scales every frame to `renderSize` with Lanczos resampling; the source image arrives already oriented.
+  private static func scaling(to renderSize: CGSize) -> @Sendable (AVAsynchronousCIImageFilteringRequest) -> Void {
+    { request in
+      let source = request.sourceImage
+      let scale = CIFilter.lanczosScaleTransform()
+      scale.inputImage = source
+      scale.scale = Float(renderSize.height / source.extent.height)
+      scale.aspectRatio = Float((renderSize.width / source.extent.width) / (renderSize.height / source.extent.height))
+      let output = scale.outputImage?.cropped(to: CGRect(origin: .zero, size: renderSize)) ?? source
+      request.finish(with: output, context: nil)
     }
   }
 }

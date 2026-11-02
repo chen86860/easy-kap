@@ -6,9 +6,26 @@ actor TestVideo {
   static let shared = TestVideo()
   private var cached: URL?
   private var cachedWithAudio: URL?
+  private var cachedVariableFrameRate: URL?
 
   func url() async throws -> URL {
     if let cached { return cached }
+    cached = try await write(frameTimes: (0..<60).map { CMTime(value: CMTimeValue($0), timescale: 30) })
+    return cached!
+  }
+
+  /// Frames only where the picture changes, with a still gap in between, like a ScreenCaptureKit recording.
+  func variableFrameRateURL() async throws -> URL {
+    if let cachedVariableFrameRate { return cachedVariableFrameRate }
+    let frames = [0, 1, 20, 21, 22, 24, 26, 30, 45, 46, 47, 48, 50, 59]
+    cachedVariableFrameRate = try await write(
+      frameTimes: frames.map { CMTime(value: CMTimeValue($0), timescale: 30) },
+      endsAt: CMTime(value: 60, timescale: 30)
+    )
+    return cachedVariableFrameRate!
+  }
+
+  private func write(frameTimes: [CMTime], endsAt end: CMTime? = nil) async throws -> URL {
     let url = FileManager.default.temporaryDirectory.appending(path: "kap-fixture-\(UUID().uuidString).mov")
     let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
     let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
@@ -26,21 +43,21 @@ actor TestVideo {
     writer.startWriting()
     writer.startSession(atSourceTime: .zero)
 
-    for frame in 0..<60 {
+    for (frame, time) in frameTimes.enumerated() {
       while !input.isReadyForMoreMediaData { try await Task.sleep(for: .milliseconds(5)) }
       var buffer: CVPixelBuffer?
       CVPixelBufferPoolCreatePixelBuffer(nil, try #require(adaptor.pixelBufferPool), &buffer)
       let pixelBuffer = try #require(buffer)
       CVPixelBufferLockBaseAddress(pixelBuffer, [])
       let base = try #require(CVPixelBufferGetBaseAddress(pixelBuffer))
-      memset(base, Int32(frame * 4 % 256), CVPixelBufferGetDataSize(pixelBuffer))
+      memset(base, Int32(frame * 16 % 256), CVPixelBufferGetDataSize(pixelBuffer))
       CVPixelBufferUnlockBaseAddress(pixelBuffer, [])
-      adaptor.append(pixelBuffer, withPresentationTime: CMTime(value: CMTimeValue(frame), timescale: 30))
+      adaptor.append(pixelBuffer, withPresentationTime: time)
     }
     input.markAsFinished()
+    if let end { writer.endSession(atSourceTime: end) }
     await writer.finishWriting()
     try #require(writer.status == .completed)
-    cached = url
     return url
   }
 

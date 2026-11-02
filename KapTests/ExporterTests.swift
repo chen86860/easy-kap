@@ -46,6 +46,18 @@ struct ExporterTests {
     #expect(properties[kCGImagePropertyPixelHeight] as? Int == 120)
   }
 
+  /// Regression: `AVAssetImageGenerator` failed with "Cannot Decode" on recordings that skip still frames.
+  @Test func exportsGIFFromVariableFrameRateRecording() async throws {
+    let source = try await Self.fixture.variableFrameRateURL()
+    let destination = FileManager.default.temporaryDirectory.appending(path: "kap-vfr-\(UUID().uuidString).gif")
+    defer { try? FileManager.default.removeItem(at: destination) }
+    let gif = ExportOptions(format: .gif, start: 0, end: 2, width: 160, height: 120, fps: 30, isMuted: true, loops: true)
+    try await Exporter.export(source: source, destination: destination, options: gif) { _ in }
+
+    let image = try #require(CGImageSourceCreateWithURL(destination as CFURL, nil))
+    #expect(CGImageSourceGetCount(image) == 60)
+  }
+
   @Test func gifLoopsForever() async throws {
     let url = try await export(options(.gif, loops: true))
     defer { try? FileManager.default.removeItem(at: url) }
