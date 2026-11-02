@@ -6,6 +6,8 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-11-02
+
 ### Changed
 
 - Settings is split into General, Recording and About tabs, so it fits on small screens.
@@ -89,7 +91,8 @@ The first public release of Easy Kap, a native rewrite of Kap.
 
 Tagged but never released: the build crashed the Swift 6.3 compiler in Xcode 26.6. Version 0.1.1 contains the fix.
 
-[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/chen86860/easy-kap/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/chen86860/easy-kap/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.5
 [0.1.4]: https://github.com/chen86860/easy-kap/releases/tag/v0.1.4
