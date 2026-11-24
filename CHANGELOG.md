@@ -6,6 +6,8 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-11-24
+
 ### Added
 
 - ⇧⌘K starts and stops a recording from any app. The screen recording guide shows the shortcut once access is granted, and you can change or clear it there or in Settings → General.
@@ -102,7 +104,8 @@ The first public release of Easy Kap, a native rewrite of Kap.
 
 Tagged but never released: the build crashed the Swift 6.3 compiler in Xcode 26.6. Version 0.1.1 contains the fix.
 
-[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/chen86860/easy-kap/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/chen86860/easy-kap/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/chen86860/easy-kap/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/chen86860/easy-kap/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/chen86860/easy-kap/compare/v0.1.5...v0.1.6
