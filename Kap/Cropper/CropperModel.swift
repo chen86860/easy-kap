@@ -54,6 +54,9 @@ final class CropperModel {
   var openMenu: ActionBarControl?
   var hoveredControl: ActionBarControl?
 
+  /// How the current selection was made, for usage data: drag, window, full_screen, default or restored.
+  @ObservationIgnored private(set) var selectionSource = "restored"
+
   @ObservationIgnored var onRecord: (() -> Void)?
   @ObservationIgnored var onCancel: (() -> Void)?
   /// Called after another app was brought forward, so the cropper can take keyboard focus back.
@@ -95,9 +98,10 @@ final class CropperModel {
     CGRect(origin: .zero, size: CGDisplayBounds(displayID).size)
   }
 
-  func select(_ rect: CGRect?, on displayID: CGDirectDisplayID) {
+  func select(_ rect: CGRect?, on displayID: CGDirectDisplayID, source: String = "drag") {
     self.displayID = displayID
     selection = rect
+    selectionSource = source
   }
 
   func setRatio(_ ratio: AspectRatio?) {
@@ -119,7 +123,7 @@ final class CropperModel {
 
   func selectFullScreen(_ displayID: CGDirectDisplayID) {
     ratio = nil
-    select(bounds(of: displayID), on: displayID)
+    select(bounds(of: displayID), on: displayID, source: "full_screen")
   }
 
   /// Selects the window on whichever display holds most of it and brings its app forward, like the original Kap.
@@ -129,7 +133,7 @@ final class CropperModel {
     guard let displayID = displays.first(where: { CGDisplayBounds($0).contains(center) }) ?? displays.first,
           let frame = CropperGeometry.localFrame(of: window.frame, displayBounds: CGDisplayBounds(displayID)) else { return }
     ratio = nil
-    select(frame, on: displayID)
+    select(frame, on: displayID, source: "window")
     if window.processID != ProcessInfo.processInfo.processIdentifier {
       NSRunningApplication(processIdentifier: window.processID)?.activate()
       onOtherAppActivated?()

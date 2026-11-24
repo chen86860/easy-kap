@@ -30,4 +30,22 @@ struct TelemetryTests {
     let error = NSError(domain: "NSCocoaErrorDomain", code: 4, userInfo: [NSLocalizedDescriptionKey: "/Users/someone/secret.mov"])
     #expect(Telemetry.errorKind(error) == "NSCocoaErrorDomain#4")
   }
+
+  @Test func payloadHasMajorOSVersion() throws {
+    let payload = Telemetry.payload(event: "app_launched", properties: [:], distinctID: "id")
+    let properties = try #require(payload["properties"] as? [String: Any])
+    #expect(properties["os_major_version"] as? Int == ProcessInfo.processInfo.operatingSystemVersion.majorVersion)
+  }
+
+  @Test func recordingClockLeavesOutPausedTime() {
+    let start = Date(timeIntervalSince1970: 0)
+    var clock = RecordingClock(start: start)
+    clock.pause(at: start.addingTimeInterval(10))
+    clock.resume(at: start.addingTimeInterval(25))
+    clock.pause(at: start.addingTimeInterval(30))
+    let summary = clock.summary(at: start.addingTimeInterval(40))
+    #expect(summary["elapsed_seconds"] as? Double == 40)
+    #expect(summary["recorded_seconds"] as? Double == 15)
+    #expect(summary["pause_count"] as? Int == 2)
+  }
 }

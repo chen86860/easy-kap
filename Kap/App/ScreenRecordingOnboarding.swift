@@ -13,7 +13,9 @@ final class ScreenRecordingOnboarding {
     self.onStartRecording = onStartRecording
   }
 
-  func show() {
+  /// `source` names what led here, for usage data.
+  func show(source: String) {
+    Telemetry.capture("onboarding_shown", ["source": source])
     let window = window ?? makeWindow()
     self.window = window
     NSApp.activate()
@@ -28,9 +30,16 @@ final class ScreenRecordingOnboarding {
 
   private func makeWindow() -> NSWindow {
     let view = ScreenRecordingOnboardingView(
-      onOpenSettings: { [weak self] in self?.guide.show() },
-      onLater: { [weak self] in self?.close() },
+      onOpenSettings: { [weak self] isRetry in
+        Telemetry.capture("screen_recording_settings_opened", ["from": "onboarding", "is_retry": isRetry])
+        self?.guide.show()
+      },
+      onLater: { [weak self] in
+        Telemetry.capture("onboarding_later")
+        self?.close()
+      },
       onGranted: { [weak self] in
+        Telemetry.captureScreenRecordingGranted(from: "onboarding")
         // The user is in System Settings; bring the next step forward.
         NSApp.activate()
         self?.window?.makeKeyAndOrderFront(nil)
@@ -57,11 +66,13 @@ final class ScreenRecordingOnboarding {
 }
 
 private struct ScreenRecordingOnboardingView: View {
-  let onOpenSettings: () -> Void
+  /// Passes whether System Settings was already opened from here.
+  let onOpenSettings: (Bool) -> Void
   let onLater: () -> Void
   let onGranted: () -> Void
   let onStartRecording: () -> Void
 
+  @Bindable private var preferences = Preferences.shared
   @State private var isGranted = ScreenRecordingPermission.isGranted
   @State private var didOpenSettings = false
 
@@ -134,8 +145,8 @@ private struct ScreenRecordingOnboardingView: View {
           .keyboardShortcut(.cancelAction)
         Spacer()
         Button(didOpenSettings ? "Open System Settings Again" : "Open System Settings") {
+          onOpenSettings(didOpenSettings)
           didOpenSettings = true
-          onOpenSettings()
         }
         .buttonStyle(.borderedProminent)
         .keyboardShortcut(.defaultAction)
@@ -153,6 +164,21 @@ private struct ScreenRecordingOnboardingView: View {
           .foregroundStyle(.secondary)
       }
       .multilineTextAlignment(.center)
+
+      VStack(alignment: .leading, spacing: 8) {
+        HStack {
+          Text("Start recording shortcut")
+          Spacer()
+          ShortcutRecorder(shortcut: $preferences.shortcut)
+        }
+        Text("Press it from any app to start or stop recording. You can change it later in Settings.")
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .padding(16)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 12))
 
       Button("Start Recording", action: onStartRecording)
         .buttonStyle(.borderedProminent)

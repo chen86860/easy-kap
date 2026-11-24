@@ -6,6 +6,11 @@ Every release needs a section here before its tag is pushed: the release workflo
 
 ## [Unreleased]
 
+### Added
+
+- ⇧⌘K starts and stops a recording from any app. The screen recording guide shows the shortcut once access is granted, and you can change or clear it there or in Settings → General.
+- Usage data also covers how a recording starts and ends, including pauses, picking the area, the permission steps and closing the editor, still without recordings, file names or paths.
+
 ## [0.1.8] - 2026-11-02
 
 ### Added

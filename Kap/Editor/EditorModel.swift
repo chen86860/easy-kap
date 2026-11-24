@@ -243,6 +243,7 @@ final class EditorModel {
         ])
         exportState = .finished(destination, note: await deliver(destination, to: target))
       } catch is CancellationError {
+        Telemetry.capture("export_cancelled", ["format": options.format.rawValue, "destination": target.telemetryName])
         exportState = .idle
       } catch {
         Telemetry.capture("export_failed", ["format": options.format.rawValue, "error": Telemetry.errorKind(error)])

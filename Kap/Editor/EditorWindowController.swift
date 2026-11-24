@@ -5,6 +5,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
   private let model: EditorModel
   private let onClose: (EditorWindowController) -> Void
   private var isDiscardConfirmed = false
+  private var isDiscarded = false
 
   init(url: URL, onClose: @escaping (EditorWindowController) -> Void) {
     model = EditorModel(url: url)
@@ -127,6 +128,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
     alert.beginSheetModal(for: sender) { [weak self] response in
       guard let self, response == .alertFirstButtonReturn else { return }
       self.isDiscardConfirmed = true
+      self.isDiscarded = true
       try? FileManager.default.removeItem(at: self.model.url)
       sender.close()
     }
@@ -134,6 +136,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
   }
 
   func windowWillClose(_ notification: Notification) {
+    Telemetry.capture("editor_closed", ["has_exported": model.hasExported, "discarded": isDiscarded])
     model.tearDown()
     onClose(self)
   }

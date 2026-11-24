@@ -71,7 +71,9 @@ struct GeneralSettingsView: View {
     .task {
       // Access granted in System Settings applies right away, so the status follows it while Settings is open.
       while !Task.isCancelled {
-        canRecordScreen = ScreenRecordingPermission.isGranted
+        let isGranted = ScreenRecordingPermission.isGranted
+        if isGranted, !canRecordScreen { Telemetry.captureScreenRecordingGranted(from: "settings") }
+        canRecordScreen = isGranted
         try? await Task.sleep(for: .seconds(1))
       }
     }

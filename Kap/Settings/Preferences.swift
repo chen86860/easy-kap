@@ -65,9 +65,14 @@ final class Preferences {
   }
   /// The language this launch shows, to tell whether a change still waits for a relaunch.
   @ObservationIgnored let launchLanguage: AppLanguage
+  @ObservationIgnored private var isLoaded = false
+  /// Starts as `Shortcut.defaultRecord`. Clearing it stores empty data, so the default doesn't come back at the next launch.
   var shortcut: Shortcut? {
     didSet {
-      defaults.set(shortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.shortcut)
+      // An optional property counts as set before init assigns it, so that assignment runs didSet too. Writing
+      // the loaded value back would store the default and keep it even after the default changes.
+      guard isLoaded else { return }
+      defaults.set(shortcut.flatMap { try? JSONEncoder().encode($0) } ?? Data(), forKey: Key.shortcut)
       onShortcutChange?(shortcut)
     }
   }
@@ -84,7 +89,8 @@ final class Preferences {
       Key.recordSystemAudio: false,
       Key.loopExports: true,
       Key.sendsUsageData: true,
-      Key.lastExportFormat: ExportFormat.mp4.rawValue
+      Key.lastExportFormat: ExportFormat.mp4.rawValue,
+      Key.shortcut: (try? JSONEncoder().encode(Shortcut.defaultRecord)) ?? Data()
     ])
 
     kapturesDirectory = URL(filePath: defaults.string(forKey: Key.kapturesDirectory) ?? "", directoryHint: .isDirectory)
@@ -102,6 +108,7 @@ final class Preferences {
     self.language = language
     launchLanguage = language
     shortcut = defaults.data(forKey: Key.shortcut).flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
+    isLoaded = true
   }
 
   private enum Key {

@@ -769,6 +769,16 @@
         }
       }
     },
+    "Press it from any app to start or stop recording. You can change it later in Settings.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在任何应用中按下即可开始或停止录制，之后可在设置中修改。"
+          }
+        }
+      }
+    },
     "Privacy": {
       "localizations": {
         "zh-Hans": {

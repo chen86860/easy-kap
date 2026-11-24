@@ -32,4 +32,19 @@ struct PreferencesTests {
     #expect(Preferences(defaults: defaults).lastExportFormat == .mp4)
     #expect(ExportFormat.allCases == [.mp4, .hevc, .gif, .apng])
   }
+
+  @Test func shortcutStartsAsCommandShiftKAndStaysClearedAfterClearing() throws {
+    let suite = "kap-tests-\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+
+    let preferences = Preferences(defaults: defaults)
+    #expect(preferences.shortcut == .defaultRecord)
+    // Loading doesn't store the default, so a later default still applies.
+    #expect(defaults.persistentDomain(forName: suite)?["shortcut"] == nil)
+    #expect(preferences.shortcut?.displayString == "⇧⌘K")
+
+    preferences.shortcut = nil
+    #expect(Preferences(defaults: defaults).shortcut == nil)
+  }
 }

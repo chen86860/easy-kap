@@ -7,6 +7,13 @@ nonisolated struct Shortcut: Codable, Equatable, Sendable {
   /// The key as typed when the shortcut was recorded, e.g. "5".
   var key: String
 
+  /// ⌘⇧K, the shortcut a new install starts with.
+  static let defaultRecord = Shortcut(
+    keyCode: UInt16(kVK_ANSI_K),
+    modifiers: NSEvent.ModifierFlags([.command, .shift]).rawValue,
+    key: "k"
+  )
+
   var modifierFlags: NSEvent.ModifierFlags {
     NSEvent.ModifierFlags(rawValue: modifiers).intersection([.command, .option, .control, .shift])
   }

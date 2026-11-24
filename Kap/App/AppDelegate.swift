@@ -16,14 +16,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var editors: [EditorWindowController] = []
   private var settingsWindow: SettingsWindowController?
   private lazy var onboarding = ScreenRecordingOnboarding(guide: permissionGuide) { [weak self] in
-    self?.cropper.open()
+    self?.openCropper(source: "onboarding")
   }
   /// Checks the release appcast for updates; created at launch, but not when the app hosts unit tests.
   private var updaterController: SPUStandardUpdaterController?
   private var isStartingRecording = false
   /// Set the moment a stop is requested, before the recorder's async stop begins, so a quick second click is ignored.
   private var isStoppingRecording = false
-  private var recordingStartDate: Date?
+  private var recordingClock: RecordingClock?
 
   static func main() {
     let app = NSApplication.shared
@@ -40,46 +40,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     NSApp.mainMenu = makeMainMenu()
     statusItem = StatusItemController(
       makeMenu: { [weak self] in self?.makeStatusMenu() ?? NSMenu() },
-      onPrimaryAction: { [weak self] in self?.primaryAction() }
+      onPrimaryAction: { [weak self] in self?.primaryAction(source: "menu_bar_icon") }
     )
 
     cropper.model.onRecord = { [weak self] in self?.startRecording() }
-    recorder.onStoppedBySystem = { [weak self] in self?.stopRecording() }
-    cropper.model.onCancel = { [weak self] in self?.cropper.close() }
+    recorder.onStoppedBySystem = { [weak self] in self?.stopRecording(source: "system") }
+    cropper.model.onCancel = { [weak self] in
+      Telemetry.capture("cropper_cancelled", ["source": "cancel"])
+      self?.cropper.close()
+    }
 
-    hotKey.action = { [weak self] in self?.primaryAction() }
+    hotKey.action = { [weak self] in self?.primaryAction(source: "hotkey") }
     hotKey.register(preferences.shortcut)
     preferences.onShortcutChange = { [weak self] in self?.hotKey.register($0) }
 
     // Without Screen Recording access nothing can be recorded, so the first launch starts in Settings, which shows
     // the permission and a button that guides the user through granting it.
     if !ScreenRecordingPermission.isGranted { showSettings(.general) }
-    Telemetry.capture("app_launched", ["screen_recording_allowed": ScreenRecordingPermission.isGranted])
+    Telemetry.captureLaunch(screenRecordingAllowed: ScreenRecordingPermission.isGranted)
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
-    urls.forEach(openEditor)
+    urls.forEach { openEditor($0, source: "open_url") }
   }
 
   func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-    if !flag { primaryAction() }
+    if !flag { primaryAction(source: "reopen") }
     return true
   }
 
   // MARK: Actions
 
-  private func primaryAction() {
+  /// `source` names what triggered the action, for usage data: hotkey, menu_bar_icon, menu or reopen.
+  private func primaryAction(source: String) {
     if recorder.isRecording {
-      stopRecording()
+      stopRecording(source: source)
     } else if cropper.isOpen {
+      Telemetry.capture("cropper_cancelled", ["source": source])
       cropper.close()
     } else if !isStartingRecording {
       if ScreenRecordingPermission.isGranted {
-        cropper.open()
+        openCropper(source: source)
       } else {
-        onboarding.show()
+        onboarding.show(source: source)
       }
     }
+  }
+
+  private func openCropper(source: String) {
+    cropper.open()
+    Telemetry.capture("cropper_opened", ["source": source])
   }
 
   private func startRecording() {
@@ -95,14 +105,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     logger.info("Starting recording \(String(describing: rect), privacy: .public) on display \(displayID)")
     preferences.lastSelection = cropper.model.savedSelection
+    let selectionSource = cropper.model.selectionSource
+    let aspectRatio = cropper.model.ratio?.title ?? "free"
     cropper.enterRecordingMode()
     Task {
       defer { isStartingRecording = false }
       do {
         try await recorder.start(displayID: displayID, rect: rect, settings: settings)
         statusItem?.setState(.recording)
-        recordingStartDate = .now
+        recordingClock = RecordingClock()
         Telemetry.capture("recording_started", [
+          "selection_source": selectionSource,
+          "aspect_ratio": aspectRatio,
+          "width": Int(rect.width),
+          "height": Int(rect.height),
           "fps": settings.fps,
           "shows_cursor": settings.showsCursor,
           "highlights_clicks": settings.showsClicks,
@@ -110,14 +126,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
           "records_system_audio": settings.recordsSystemAudio
         ])
       } catch {
-        Telemetry.capture("recording_failed", ["error": Telemetry.errorKind(error)])
+        Telemetry.capture("recording_failed", ["stage": "start", "error": Telemetry.errorKind(error)])
         cropper.close()
         present(error)
       }
     }
   }
 
-  private func stopRecording() {
+  /// `source` names what stopped it, for usage data: hotkey, menu_bar_icon, menu or system.
+  private func stopRecording(source: String) {
     // Both menu bar buttons can stop a recording; only the first click counts.
     guard !isStoppingRecording, !recorder.isStopping else { return }
     isStoppingRecording = true
@@ -127,38 +144,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       statusItem?.setState(.idle)
       do {
         let url = try await recorder.stop()
-        // Includes paused time: the span from start to stop.
-        let elapsed = recordingStartDate.map { Date.now.timeIntervalSince($0) } ?? 0
-        Telemetry.capture("recording_finished", ["elapsed_seconds": elapsed.rounded()])
-        openEditor(url)
+        let timing = recordingClock?.summary() ?? [:]
+        Telemetry.capture("recording_finished", timing.merging(["stop_source": source]) { _, new in new })
+        openEditor(url, source: "recording")
       } catch {
-        Telemetry.capture("recording_failed", ["error": Telemetry.errorKind(error)])
+        Telemetry.capture("recording_failed", ["stage": "stop", "error": Telemetry.errorKind(error)])
         present(error)
       }
     }
   }
 
   @objc private func togglePause() {
+    // Read before the call: a failed pause has already ended its segment, so the recorder reads as paused.
+    let stage = recorder.isPaused ? "resume" : "pause"
     Task {
       do {
         if recorder.isPaused {
           try recorder.resume()
           statusItem?.setState(.recording)
+          recordingClock?.resume()
+          Telemetry.capture("recording_resumed")
         } else {
           try await recorder.pause()
           statusItem?.setState(.paused)
+          recordingClock?.pause()
+          Telemetry.capture("recording_paused")
         }
       } catch {
+        Telemetry.capture("recording_failed", ["stage": stage, "error": Telemetry.errorKind(error)])
         present(error)
       }
     }
   }
 
   @objc private func stopRecordingFromMenu() {
-    stopRecording()
+    stopRecording(source: "menu")
   }
 
-  private func openEditor(_ url: URL) {
+  /// `source` says where the video came from, for usage data: recording, open_video or open_url.
+  private func openEditor(_ url: URL, source: String) {
+    Telemetry.capture("editor_opened", ["source": source])
     let editor = EditorWindowController(url: url) { [weak self] closed in
       self?.editors.removeAll { $0 === closed }
     }
@@ -176,7 +201,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.allowsMultipleSelection = true
     NSApp.activate()
     guard panel.runModal() == .OK else { return }
-    panel.urls.forEach(openEditor)
+    panel.urls.forEach { openEditor($0, source: "open_video") }
   }
 
   @objc private func checkForUpdates() {
@@ -191,6 +216,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func showSettings(_ tab: SettingsWindowController.Tab? = nil) {
     if settingsWindow == nil {
       settingsWindow = SettingsWindowController(preferences: preferences, updater: updaterController?.updater) { [weak self] in
+        Telemetry.capture("screen_recording_settings_opened", ["from": "settings"])
         self?.permissionGuide.show()
       }
     }
@@ -198,13 +224,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   @objc private func startRecordingFromMenu() {
-    primaryAction()
+    primaryAction(source: "menu")
   }
 
   private func present(_ error: any Error) {
     logger.error("\(String(describing: error), privacy: .public)")
     if case .screenRecordingDenied? = error as? RecorderError {
-      onboarding.show()
+      onboarding.show(source: "recording_denied")
       return
     }
     let alert = NSAlert(error: error)

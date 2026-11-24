@@ -15,7 +15,7 @@ final class CropperController {
     model.openMenu = nil
     model.validateSelection()
     if model.selection == nil, let mainDisplay = NSScreen.main?.displayID {
-      model.select(CropperGeometry.defaultSelection(in: model.bounds(of: mainDisplay)), on: mainDisplay)
+      model.select(CropperGeometry.defaultSelection(in: model.bounds(of: mainDisplay)), on: mainDisplay, source: "default")
     }
 
     for screen in NSScreen.screens {
